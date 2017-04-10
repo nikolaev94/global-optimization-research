@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Global-Optimization-Lib", "Global-Optimization-Lib\Global-Optimization-Lib.vcxproj", "{B96A042E-DA69-4F53-8CBE-87470ED416BF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Global-Optimization-Tests", "Global-Optimization-Tests\Global-Optimization-Tests.vcxproj", "{51045FAA-70A4-4FF2-A2DB-B1254A11A0DD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B96A042E-DA69-4F53-8CBE-87470ED416BF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B96A042E-DA69-4F53-8CBE-87470ED416BF}.Debug|Win32.Build.0 = Debug|Win32
+		{B96A042E-DA69-4F53-8CBE-87470ED416BF}.Release|Win32.ActiveCfg = Release|Win32
+		{B96A042E-DA69-4F53-8CBE-87470ED416BF}.Release|Win32.Build.0 = Release|Win32
+		{51045FAA-70A4-4FF2-A2DB-B1254A11A0DD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{51045FAA-70A4-4FF2-A2DB-B1254A11A0DD}.Debug|Win32.Build.0 = Debug|Win32
+		{51045FAA-70A4-4FF2-A2DB-B1254A11A0DD}.Release|Win32.ActiveCfg = Release|Win32
+		{51045FAA-70A4-4FF2-A2DB-B1254A11A0DD}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
