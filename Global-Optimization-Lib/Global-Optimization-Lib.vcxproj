@@ -179,7 +179,6 @@
     <ClCompile Include="solver.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="all.h" />
     <ClInclude Include="examin\ConstrainedProblem.hpp" />
     <ClInclude Include="examin\ConstrainedProblemGenerator.hpp" />
     <ClInclude Include="examin\problemPar.hpp" />

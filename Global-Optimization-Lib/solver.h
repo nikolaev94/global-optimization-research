@@ -2,7 +2,6 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
-#include "all.h"
 #include "opt_problem.h"
 
 #include <queue>
@@ -16,7 +15,7 @@
 #include <tbb/spin_mutex.h>
 #include <tbb/tick_count.h>
 
-#include <mpi.h>
+//#include <mpi.h>
 
 /*
 #include <cilk\cilk.h>
