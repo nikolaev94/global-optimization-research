@@ -89,6 +89,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(I_MPI_ROOT)\intel64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(I_MPI_ROOT)\intel64\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -157,6 +159,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>impi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -175,6 +180,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="all.h" />
+    <ClInclude Include="examin\ConstrainedProblem.hpp" />
+    <ClInclude Include="examin\ConstrainedProblemGenerator.hpp" />
+    <ClInclude Include="examin\problemPar.hpp" />
     <ClInclude Include="funcs.h" />
     <ClInclude Include="gkls_problem.h" />
     <ClInclude Include="gkls\gkls.h" />
@@ -184,12 +192,9 @@
     <ClInclude Include="grishagin_problem.h" />
     <ClInclude Include="hill.h" />
     <ClInclude Include="infrastructure.h" />
-    <ClInclude Include="integral.h" />
     <ClInclude Include="map\map.h" />
     <ClInclude Include="math_function.h" />
     <ClInclude Include="opt_problem.h" />
-    <ClInclude Include="shekel.h" />
-    <ClInclude Include="function.h" />
     <ClInclude Include="solver.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

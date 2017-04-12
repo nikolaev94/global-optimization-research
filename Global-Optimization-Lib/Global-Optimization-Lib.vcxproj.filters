@@ -56,19 +56,10 @@
     <ClInclude Include="all.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="shekel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="integral.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="hill.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="infrastructure.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="function.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="grishagin_function.h">
@@ -99,6 +90,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="map\map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="examin\ConstrainedProblem.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="examin\ConstrainedProblemGenerator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="examin\problemPar.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

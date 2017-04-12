@@ -16,6 +16,7 @@
 #include <tbb/spin_mutex.h>
 #include <tbb/tick_count.h>
 
+#include <mpi.h>
 
 /*
 #include <cilk\cilk.h>
@@ -96,11 +97,6 @@ public:
 
 	struct MetricsContainer
 	{
-		/*
-		std::vector<std::pair<unsigned, double>> average_error_by_trials;
-		std::vector<std::pair<unsigned, double>> max_error_by_trials;
-		*/
-
 		errors_vector errors_by_trials;
 		portion_vector solved_problems_portion_by_trials;
 

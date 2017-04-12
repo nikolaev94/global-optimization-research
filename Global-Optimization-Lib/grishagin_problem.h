@@ -23,7 +23,6 @@ public:
 	double getObjectiveValue(double arg) const override;
 	double getContraintValue(std::size_t number, double arg) const override;
 	std::size_t getConstraintsNumber() const override;
-
 };
 
 #endif
