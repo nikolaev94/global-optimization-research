@@ -79,7 +79,8 @@ int ProblemLoader::set_GKLS_class_parameters(const UserParameters& user_paramete
 }
 
 
-void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters, Solver::problem_list& problems)
+void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
+	Solver::problem_list& problems)
 {
 	if (set_GKLS_class_parameters(user_parameters))
 	{
@@ -154,7 +155,8 @@ std::string ProblemLoader::get_output_file_prefix(const UserParameters& user_par
 }
 
 
-void ProblemLoader::load_series(const UserParameters& user_parameters, Solver::problem_list& problems)
+void ProblemLoader::load_series(const UserParameters& user_parameters,
+	Solver::problem_list& problems)
 {
 	switch (user_parameters.get_function_class())
 	{

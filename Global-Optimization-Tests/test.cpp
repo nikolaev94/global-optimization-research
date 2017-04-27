@@ -19,7 +19,7 @@
 
 int main(int argc, char* argv[])
 {
-	/*UserParameters user_parameters;
+	UserParameters user_parameters;
 
 	user_parameters.parse_arguments_from_command_line(argc, argv);
 
@@ -31,8 +31,14 @@ int main(int argc, char* argv[])
 
 	std::string prefix = loader.get_output_file_prefix(user_parameters);
 
+	/*
 	Solver::Input input = { 0.0, 1.0, user_parameters.get_precision(), user_parameters.get_method_parameter(),
 		user_parameters.get_workers_number(), user_parameters.get_solving_method() };
+		*/
+
+	Solver::Input input = { 0.0, 1.0, user_parameters.get_precision(), user_parameters.get_method_parameter(),
+		user_parameters.get_workers_number(), Solver::SEQUENTIAL };
+	
 
 	Solver::Output output(input);
 
@@ -45,10 +51,8 @@ int main(int argc, char* argv[])
 	output.dump_error_metrics_by_trials_to_file(prefix + "errors.csv");
 
 	output.dump_solved_problem_portion_by_trials_to_file(prefix + "portions.csv");
-
-	std::cout << "-------------------" << std::endl;
-	*/
-
+	
+	/*
 	double xray[50], yray[50], zmat[50][50];
 	int n = 50, i, j;
 	double  fpi = 3.14159 / 180.0, step, x, y;
@@ -91,7 +95,7 @@ int main(int argc, char* argv[])
 	g.graf(0.0, 360.0, 0.0, 90.0, 0.0, 360.0, 0.0, 90.0);
 
 	g.height(30);
-	/*for (i = 0; i < 9; i++)
+	for (i = 0; i < 9; i++)
 	{
 		zlev = -2.0 + i * 0.5;
 		g.setclr((i + 1) * 25);
@@ -101,12 +105,12 @@ int main(int argc, char* argv[])
 			g.labels("float", "contur");
 
 		g.contur(xray, n, yray, n, (double *)zmat, zlev);
-	}*/
+	}
 
 	g.height(50);
 	g.color("fore");
 	g.title();
 	g.disfin();
-	return 0;
+	return 0;*/
 	return 0;
 }

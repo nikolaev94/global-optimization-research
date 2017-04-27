@@ -73,7 +73,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)\Global-Optimization-Lib\;$(TBBIncludeDir);$(SolutionDir)\dislin;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ICPP_COMPILER16)\compiler\lib\ia32;$(SolutionDir)\Win32;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ICPP_COMPILER16)\compiler\lib\ia32;$(SolutionDir)\dislin\win32;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>

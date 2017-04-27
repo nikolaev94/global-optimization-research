@@ -43,7 +43,8 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 				}
 				else
 				{
-					std::cerr << option << ": argument " << function_class_name << " is invalid." << std::endl;
+					std::cerr << option << ": argument "
+						<< function_class_name << " is invalid." << std::endl;
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -63,17 +64,20 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 				{
 					this->solving_method = Solver::DYNAMIC;
 				}
-				else if (solving_method_name == "simultaneous" || solving_method_name == "Simultaneous")
+				else if (solving_method_name == "simultaneous"
+					|| solving_method_name == "Simultaneous")
 				{
 					this->solving_method = Solver::SIMULTANEOUS;
 				}
-				else if (solving_method_name == "sequential" || solving_method_name == "Sequential")
+				else if (solving_method_name == "sequential"
+					|| solving_method_name == "Sequential")
 				{
 					this->solving_method = Solver::SEQUENTIAL;
 				}
 				else
 				{
-					std::cerr << option << ": argument " << solving_method_name << " is invalid." << std::endl;
+					std::cerr << option << ": argument "
+						<< solving_method_name << " is invalid." << std::endl;
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -91,7 +95,8 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 
 				if (dim < 2)
 				{
-					std::cerr << option << ": argument " << dim << " is invalid" << std::endl;
+					std::cerr << option << ": argument "
+						<< dim << " is invalid" << std::endl;
 					exit(EXIT_FAILURE);
 				}
 				else
@@ -112,7 +117,8 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 				double method_parameter = atof(argv[++i]);
 				if (method_parameter < 1.0 + DBL_EPSILON)
 				{
-					std::cerr << option << ": argument " << method_parameter << " is invalid" << std::endl;
+					std::cerr << option << ": argument "
+						<< method_parameter << " is invalid" << std::endl;
 					exit(EXIT_FAILURE);
 				}
 				else
@@ -122,7 +128,8 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 			}
 			else
 			{
-				std::cerr << option << " option requires one argument." << std::endl;
+				std::cerr << option
+					<< " option requires one argument." << std::endl;
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -133,7 +140,8 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 				double eps = atof(argv[++i]);
 				if (eps < DBL_EPSILON)
 				{
-					std::cerr << option << ": argument " << eps << " is invalid" << std::endl;
+					std::cerr << option
+						<< ": argument " << eps << " is invalid" << std::endl;
 					exit(EXIT_FAILURE);
 				}
 				else
@@ -143,7 +151,8 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 			}
 			else
 			{
-				std::cerr << option << " option requires one argument." << std::endl;
+				std::cerr << option
+					<< " option requires one argument." << std::endl;
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -154,7 +163,8 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 				int num_workers = atoi(argv[++i]);
 				if (num_workers < 1)
 				{
-					std::cerr << option << ": argument " << num_workers << " is invalid" << std::endl;
+					std::cerr << option << ": argument "
+						<< num_workers << " is invalid" << std::endl;
 					exit(EXIT_FAILURE);
 				}
 				else

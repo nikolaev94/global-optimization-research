@@ -9,11 +9,14 @@
 #include <set>
 #include <unordered_map>
 
-#include <tbb/task_scheduler_init.h>
+#include <tbb/concurrent_vector.h>
 #include <tbb/parallel_do.h>
+#include <tbb/parallel_sort.h>
 #include <tbb/mutex.h>
 #include <tbb/spin_mutex.h>
+#include <tbb/task_scheduler_init.h>
 #include <tbb/tick_count.h>
+
 
 //#include <mpi.h>
 
@@ -64,10 +67,13 @@ public:
 	{
 		problem_iterator solved_problem;
 
-		double xmin, zmin;
+		double xmin;
+		double zmin;
 		double error;
 		bool correctness;
 		unsigned trials;
+		double elapsed_time;
+
 		/*
 		 * Total number of algorithm iterations completed before the problem was resolved
 		 */
@@ -78,8 +84,13 @@ public:
 		unsigned total_trials;
 		
 		ProblemSolvingResult() : correctness(true) {}
-		ProblemSolvingResult(const MethodData& method_data) : solved_problem(method_data.problem)
+		ProblemSolvingResult(const MethodData& method_data)
+			: solved_problem(method_data.problem)
 		{
+			auto finishing_stamp = tbb::tick_count::now();
+
+
+
 			// this->iterations = method_data.iterations_count;
 			this->xmin = method_data.sln_estimator.xmin;
 			this->zmin = method_data.sln_estimator.zmin;
@@ -110,7 +121,10 @@ public:
 		std::list<ProblemSolvingResult> results;
 		MetricsContainer metrics;
 
-		Output(const Input& input) : original_input(input), metrics(input), elapsed_time(0.0) {}
+		Output(const Input& input) : original_input(input),
+			metrics(input), elapsed_time(0.0) {}
+
+		void add_problem_solving_result(const MethodData&);
 		void dump_results_to_file(const std::string&);
 		void dump_error_metrics_by_trials_to_file(const std::string&);
 		void dump_solved_problem_portion_by_trials_to_file(const std::string&);
@@ -137,7 +151,8 @@ private:
 		
 		Trial() {}
 		Trial(double _x) : x(_x) {}
-		Trial(const Trial& src) : x(src.x), z(src.z), nu(src.nu), admissible(src.admissible) {}
+		Trial(const Trial& src) : x(src.x), z(src.z), nu(src.nu),
+			admissible(src.admissible) {}
 		
 		Trial(double _x, double _z, unsigned _nu) : x(_x), z(_z), nu(_nu) {}
 
@@ -151,24 +166,40 @@ private:
 		 * Use only neighbour trials to calculate lower lip const
 		 * This optimization can be used only for one-function problems
 		 */
-		static bool use_neighbour_nodes;
+
+		static bool USE_NEIGHBOUR_NODES;
+
 		std::set<Trial> subset;
 		double lip_const;
 		double min_estimator;
-		const size_t SUBSET_SIZE_LIMIT = 20;
+		const size_t SUBSET_SIZE_LIMIT = 10;
 
 		double method_parameter;
 
 		TrialSubset() : lip_const(1.0), min_estimator(0.0) {}
-		TrialSubset(const std::set<Trial>& _subset) : subset (_subset), lip_const(1.0), min_estimator(0.0) {}
+		TrialSubset(const std::set<Trial>& in_subset) : subset (in_subset),
+			lip_const(1.0), min_estimator(0.0) {}
 		void insert(const Trial& trial) { this->subset.insert(trial); }
+
+		bool check_and_set_zero();
+		bool update_subset_min_estimate(const Trial&);
+
+		bool update_subset_lip_const_lower_estimation(const Trial&);
+
+		bool update_subset_method_parameter(double in_parameter);
 
 		void calc_subset_lower_lip_const();
 		void calc_subset_min_estimate();
 	private:
+		double get_subset_lip_const_lower_estimation(const Trial&);
+
+		double calc_max_difference_between_neighbours(const Trial&);
+		double calc_max_difference_between_all_trials(const Trial&);
+		double calc_relative_difference_between_nodes(const Trial&, const Trial&);
+
 		double get_subset_max_difference();
 
-		double calc_max_difference_neighbours();
+		double calc_max_difference_neighbours_1();
 		double calc_max_difference_all_trials();
 	};
 
@@ -185,43 +216,38 @@ private:
 		double greater_nu_lipconst;
 		double greater_nu_method_param;
 
-		Interval() {}
+		Interval() = delete;
 		Interval(problem_iterator _problem) : problem(_problem) {}
 		Interval(problem_iterator _problem, const Trial& _left_node, const Trial& _right_node)
 			: problem(_problem), left_node(_left_node), right_node(_right_node) {}
 
-		// By default, compare intervals by chars
+		// By default, compare intervals by charateristics
 		bool operator< (const Interval& interval) const { return this->charact > interval.charact; }
+		bool operator== (const Interval& interval) const { return this->right_node.x == interval.right_node.x; }
 
 		void calc_characteristic(const trial_subsets&);
-		double get_new_point() const;
+		
 		Trial create_new_trial() const;
 	private:
+		double get_new_point() const;
 		double get_interval_length();
 	};
 
-	typedef std::multiset<Interval>::iterator interval_iterator;
-
-	struct IntervalNodeComparator {
+	struct IntervalNodeComparator
+	{
 		bool operator() (const Interval& lhs, const Interval& rhs) const
 		{
 			return lhs.right_node < rhs.right_node;
 		}
 	};
 
-	/*
-
-	struct IntervalContainer
+	struct IntervalCharateristicCompartor
 	{
-	void split_interval(const Interval&, const Trial&);
-
-	private:
-	std::set<Interval> segments;
-	//std::set<Interval, IntervalNodeComparator> segments;
-	// std::multiset<Trial> segment_set;
+		bool operator() (const Interval& lhs, const Interval& rhs) const
+		{
+			return lhs.charact > rhs.charact;
+		}
 	};
-
-	*/
 
 	struct FunctionStatsInfo
 	{
@@ -235,7 +261,7 @@ private:
 
 		void update();
 		FunctionStatsInfo() : calc_count(0), parameter(initial_parameter) {}
-		FunctionStatsInfo(double _parameter) : calc_count(0), parameter(_parameter) {}
+		FunctionStatsInfo(double in_parameter) : calc_count(0), parameter(in_parameter) {}
 	};
 
 	typedef std::map<unsigned, FunctionStatsInfo> function_stats_t;
@@ -246,60 +272,100 @@ private:
 		double zmin;
 		double error;
 
+		void set_initial_error(double in_error)
+		{
+			error = in_error;
+		}
+
 		SolutionEstimator() : xmin(0.0), zmin(DBL_MAX), error(DBL_MAX) {}
 	};
+
+	
 
 
 	struct MethodData
 	{
+		typedef std::vector<Interval>::iterator interval_iterator;
+
 		static Input input;
-		static void set_method_input(const Input&);
 		static unsigned global_iterations_count;
-		static tbb::atomic<unsigned> global_trials_count;
+		static tbb::atomic<unsigned> global_trials_count
+
+		static void set_method_input(const Input&);
 
 		// unsigned iterations_count = 0;
+		// bool operator==(const MethodData&) const;
+
 		unsigned trials_count = 0;
 		unsigned total_trials_count = 0;
 		unsigned total_iterations_count = 0;
+
 		SolutionEstimator sln_estimator;
+		OptProblem::OptProblemPtr _problem;
 		problem_iterator problem;
+
+		void parallel_perform_iteration();
+		
+
+		void dump_solving_result(std::list<ProblemSolvingResult>& results);
+
+
+		void add_new_trial(const Trial&);
 
 		void add_trial(const Trial&);
 		void update_trial_subsets();
-		
+
+		void construct_sorted_segment_set(
+			std::multiset<Interval, IntervalCharateristicCompartor>&) const;
+
 		void construct_segment_set(std::multiset<Interval>&) const;
+
 		bool is_finished() const;
 
 		unsigned get_num_trials() const;
 		double get_error_value() const;
 
+		MethodData(const OptProblem::OptProblemPtr&);
+
 		MethodData(problem_iterator);
 
-		// bool operator==(const MethodData&) const;
-
 	private:
+		tbb::tick_count starting_stamp;
+
 		bool method_finished = false;
+
+		bool update_interval_charateristics = false;
+
 		std::set<Trial> trials;
-		trial_subsets subsets;
 
+		std::map<unsigned, TrialSubset> subsets;
 
-		//std::multiset<>
+		std::list<Interval> segment_set;
 
-
-
-		// std::multiset<Interval>;
-
-		function_stats_t function_stats;
+		std::map<unsigned, FunctionStatsInfo> function_stats;
 		
 		void init_function_stats();
 		void init_trial_subsets();
+		void init_segment_set();
 
-		void add_trial_to_subset(const Trial&);
-		void update_stats(const Trial&);
 		void update_solution(const Trial&);
 
+		void add_trial_to_subset(const Trial&);
+
+		bool update_trial_subsets(const Trial&);
+		void update_stats(const Trial&);
+		bool update_method_parameters(const Trial&);
+		bool update_min_estimators(const Trial&);
+		bool update_lip_const_lower_estimation(const Trial&);
+
+		void sort_segment_set();
+
+		void split_interval(const std::pair<Interval, Trial>&);
+
+
+		// DEPRECATED:
 		void update_method_parameters();
-		void calc_lower_lip_const();
+		void update_lower_lip_const();
 		void calc_min_estimators();
 	};
 
@@ -310,16 +376,17 @@ private:
 
 	struct MethodDataContainer
 	{
+		void add_problem(problem_iterator);
 		bool is_all_finished();
-		void update_metrics(MetricsContainer&);
 		void dump_solving_results(std::list<ProblemSolvingResult>&);
+		void update_metrics(MetricsContainer&);
 	protected:
 		std::map<ProblemIterator, MethodData> problem_series_container;
 
 		void update_errors(errors_vector&);
 		void update_portion(portion_vector&);
 
-		// std::unordered_map<problem_iterator, MethodData, ProblemIteratorHasher> problem_series_container;
+		// std::unordered_map<problem_iterator, MethodData, ProblemIteratorHasher>
 	};
 
 
@@ -337,8 +404,6 @@ private:
 
 	struct DynamicMethodDataContainer : public MethodDataContainer
 	{
-		// bool queue_is_empty();
-
 		void enqueue_problem(problem_iterator);
 		void init_workers(unsigned);
 		void perform_iteration();
@@ -351,20 +416,8 @@ private:
 
 		std::list<std::reference_wrapper<MethodData>> active_solving_problems;
 		std::queue<problem_iterator> problem_queue;
-		// std::list<MethodData> active_solving_problems;
 	};
 
-
-	/*class DynamicMethodIterationExecutor
-	{
-	private:
-		std::list<std::reference_wrapper<MethodData>> method_data;
-	public:
-		DynamicMethodIterationExecutor(std::list<std::reference_wrapper<MethodData>>&);
-		void operator()(const tbb::blocked_range<unsigned>& range);
-	};*/
-
-	
 
 	Input input;
 	problem_list problems;

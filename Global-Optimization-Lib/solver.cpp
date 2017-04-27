@@ -4,9 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-Solver::Solver() // : scheduler(1)
-{
-}
+Solver::Solver() {}
 
 Solver::Solver(const Input& _input, const problem_list& _problems)
 	: scheduler(tbb::task_scheduler_init::deferred), input(_input), problems(_problems)
@@ -20,82 +18,71 @@ Solver::Solver(const Input& _input) : scheduler(tbb::task_scheduler_init::deferr
 }
 
 
-Solver::~Solver()
-{
-}
+Solver::~Solver() {}
 
 
 void Solver::Output::dump_results_to_file(const std::string& filename)
 {
-	std::ofstream ofs(filename);
+	std::ofstream ofstream(filename);
 
-	ofs << "xmin" << ';' << "zmin" << ';' << "error" << ';'
+	ofstream << "xmin" << ';' << "zmin" << ';' << "error" << ';'
 		<< "Problem trials" << ';' << "Iterations" << ';'
 		<< "Total trials" << ';' << std::endl;
 
 	for (const auto& res : this->results)
 	{
-		ofs << res.xmin << ';' << res.zmin << ';' << res.error << ';'
+		ofstream << res.xmin << ';' << res.zmin << ';' << res.error << ';'
 			<< res.trials << ';' << res.iterations << ';'
 			<< res.total_trials << ';' << std::endl;
 	}
 
-	ofs << std::endl << "Precise" << ';' << "Parameter" << ';'
+	ofstream << std::endl << "Precise" << ';' << "Parameter" << ';'
 		<< "Number of workers" << ';' << "Total trials" << ';'
 		<< "Total iterations" << ';' << "Elapsed time" << ';' << std::endl;
 
-	ofs << this->original_input.method_eps << ';' << this->original_input.method_param << ';'
+	ofstream << this->original_input.method_eps << ';' << this->original_input.method_param << ';'
 		<< this->original_input.num_threads << ';'
 		<< MethodData::global_trials_count << ';'
 		<< MethodData::global_iterations_count << ';' << this->elapsed_time << ';' << std::endl;
 
-	ofs.close();
+	ofstream.close();
 }
 
 
 void Solver::Output::dump_error_metrics_by_trials_to_file(const std::string& filename)
 {
-	std::ofstream ofs(filename);
+	std::ofstream ofstream(filename);
 
-	/*
-	ofs << "Number of trials" << ';' << "Average error" << ';';
-
-	for (const auto& avg : this->metrics.average_error_by_trials)
-	{
-		ofs << avg.first << ';' << avg.second << ';';
-	}
-
-	ofs << ';' << "Number of trials" << ';' << "Max error" << ';' << std::endl;
-
-	for (const auto& maximum : this->metrics.max_error_by_trials)
-	{
-		ofs << ';' << maximum.first << '; ' << maximum.second << '; ' << std::endl;
-	}
-	*/
-
-	ofs << "Num trials" << ';' << "Average error" << ';' << "Max error" << std::endl;
+	ofstream << "Num trials" << ';' << "Average error" << ';' << "Max error" << std::endl;
 
 	for (const auto& error: this->metrics.errors_by_trials)
 	{
-		ofs << error.first << ';' << error.second.first << ';' << error.second.second << std::endl;
+		ofstream << error.first << ';' << error.second.first <<
+			';' << error.second.second << std::endl;
 	}
 
-	ofs.close();
+	ofstream.close();
 }
 
 
 void Solver::Output::dump_solved_problem_portion_by_trials_to_file(const std::string& filename)
 {
-	std::ofstream ofs(filename);
+	std::ofstream ofstream(filename);
 
-	ofs << "Num trials" << ';' << "Solved problem" << std::endl;
+	ofstream << "Num trials" << ';' << "Solved problem" << std::endl;
 
 	for (const auto& portion: this->metrics.solved_problems_portion_by_trials)
 	{
-		ofs << portion.first << ';' << portion.second << std::endl;
+		ofstream << portion.first << ';' << portion.second << std::endl;
 	}
 
-	ofs.close();
+	ofstream.close();
+}
+
+
+void Solver::Output::add_problem_solving_result(const MethodData &solved_problem_data)
+{
+	results.emplace_back(solved_problem_data);
 }
 
 
@@ -124,13 +111,28 @@ void Solver::Trial::perform_trial(problem_iterator problem)
 	this->admissible = true;
 }
 
-bool Solver::TrialSubset::use_neighbour_nodes = true;
+bool Solver::TrialSubset::USE_NEIGHBOUR_NODES = true;
+
+void Solver::TrialSubset::calc_subset_min_estimate()
+{
+	double zmin = DBL_MAX;
+
+	for (const auto& trial : this->subset)
+	{
+		if (trial.z < zmin)
+		{
+			zmin = trial.z;
+		}
+	}
+	this->min_estimator = zmin;
+}
+
 
 double Solver::TrialSubset::get_subset_max_difference()
 {
-	if (TrialSubset::use_neighbour_nodes && this->subset.size() > this->SUBSET_SIZE_LIMIT)
+	if (TrialSubset::USE_NEIGHBOUR_NODES && this->subset.size() > this->SUBSET_SIZE_LIMIT)
 	{
-		return calc_max_difference_neighbours();
+		return calc_max_difference_neighbours_1();
 	}
 	else
 	{
@@ -141,7 +143,8 @@ double Solver::TrialSubset::get_subset_max_difference()
 
 double Solver::TrialSubset::calc_max_difference_all_trials()
 {
-	double maxDiff = -DBL_MAX;
+	double maxDiff = 0.0;
+
 	for (auto i = this->subset.begin(); i != --this->subset.end(); i++)
 	{
 		for (auto j = std::next(i); j != this->subset.end(); j++)
@@ -161,15 +164,15 @@ double Solver::TrialSubset::calc_max_difference_all_trials()
 }
 
 
-double Solver::TrialSubset::calc_max_difference_neighbours()
+double Solver::TrialSubset::calc_max_difference_neighbours_1()
 {
-	double maxDiff = -DBL_MAX;
-	for (auto i = this->subset.begin(); i != --this->subset.end(); i++)
+	double maxDiff = 0.0;
+	for (auto subset = this->subset.begin(); subset != --this->subset.end(); subset++)
 	{
-		auto j = std::next(i);
-		if (fabs(j->z - i->z) / (j->x - i->x) > maxDiff)
+		auto j = std::next(subset);
+		if (fabs(j->z - subset->z) / (j->x - subset->x) > maxDiff)
 		{
-			maxDiff = fabs(j->z - i->z) / (j->x - i->x);
+			maxDiff = fabs(j->z - subset->z) / (j->x - subset->x);
 		}
 	}
 	if (maxDiff < DBL_EPSILON)
@@ -180,28 +183,171 @@ double Solver::TrialSubset::calc_max_difference_neighbours()
 }
 
 
+double Solver::TrialSubset::calc_relative_difference_between_nodes(const Trial& lhs_node,
+	const Trial& rhs_node)
+{
+	return fabs(rhs_node.z - lhs_node.z) / fabs(rhs_node.x - lhs_node.x);
+}
+
+double Solver::TrialSubset::calc_max_difference_between_neighbours(const Trial& another_trial)
+{
+	auto position = subset.find(another_trial);
+
+	double maxDiff = 0.0;
+
+	if (position != subset.begin())
+	{
+		double difference = calc_relative_difference_between_nodes(
+			*std::prev(position), *position);
+
+		if (difference > maxDiff)
+		{
+			maxDiff = difference;
+		}
+	}
+
+	if (std::next(position) != subset.end())
+	{
+		double difference = calc_relative_difference_between_nodes(
+			*position, *std::next(position));
+
+		if (difference > maxDiff)
+		{
+			maxDiff = difference;
+		}
+	}
+
+	return maxDiff;
+}
+
+
+double Solver::TrialSubset::calc_max_difference_between_all_trials(const Trial& another_trial)
+{
+	auto position = subset.find(another_trial);
+
+	double maxDiff = 0.0;
+
+	for (auto trial = subset.begin(); trial != subset.end(); ++trial)
+	{
+		if (trial != position)
+		{
+			double difference = calc_relative_difference_between_nodes(
+				*trial, *position);
+			if (difference > maxDiff)
+			{
+				maxDiff = difference;
+			}
+		}
+	}
+
+	return maxDiff;
+}
+
 void Solver::TrialSubset::calc_subset_lower_lip_const()
 {
-	if (this->subset.size() < 2) {
+	if (this->subset.size() < 2)
+	{
 		this->lip_const = 1.0;
-	} else {
+	}
+	else
+	{
 		this->lip_const = this->get_subset_max_difference();
 	}
 }
 
 
-void Solver::TrialSubset::calc_subset_min_estimate()
+double Solver::TrialSubset::get_subset_lip_const_lower_estimation(const Trial& another_trial)
 {
-	double zmin = DBL_MAX;
-	for (const auto& trial : this->subset)
+	if (subset.size() < 2)
 	{
-		if (trial.z < zmin)
-		{
-			zmin = trial.z;
-		}
+		return 1.0;
 	}
-	this->min_estimator = zmin;
+	else
+	{
+		double maxDiff = 0.0;
+
+		if (TrialSubset::USE_NEIGHBOUR_NODES)
+		{
+			if (subset.size() > TrialSubset::SUBSET_SIZE_LIMIT)
+			{
+				maxDiff = calc_max_difference_between_neighbours(another_trial);
+			}
+		}
+		else
+		{
+			maxDiff = calc_max_difference_between_all_trials(another_trial);
+		}
+
+		if (maxDiff < DBL_EPSILON)
+		{
+			return 1.0;
+		}
+
+		return maxDiff;
+	}
 }
+
+
+
+bool Solver::TrialSubset::update_subset_lip_const_lower_estimation(const Trial& another_trial)
+{
+	double new_lip_const = get_subset_lip_const_lower_estimation(another_trial);
+
+	if (new_lip_const > lip_const)
+	{
+		lip_const = new_lip_const;
+		return true;
+	}
+
+	return false;
+}
+
+
+bool Solver::TrialSubset::check_and_set_zero()
+{
+	auto prev_min_estimator = min_estimator;
+
+	min_estimator = 0.0;
+
+	if (prev_min_estimator)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+bool Solver::TrialSubset::update_subset_min_estimate(const Trial& another_trial)
+{
+	double zmin = min_estimator;
+
+	if (!zmin)
+	{
+		zmin = DBL_MAX;
+	}
+
+	if (another_trial.z < zmin)
+	{
+		min_estimator = another_trial.z;
+		return true;
+	}
+	return false;
+}
+
+
+bool Solver::TrialSubset::update_subset_method_parameter(double in_parameter)
+{
+	auto prev_parameter = method_parameter;
+
+	method_parameter = in_parameter;
+
+	if (prev_parameter != method_parameter)
+	{
+		return true;
+	}
+	return false;
+}
+
 
 
 /*
@@ -238,6 +384,7 @@ double Solver::FunctionStatsInfo::initial_parameter = 10.0;
 void Solver::FunctionStatsInfo::update()
 {
 	this->calc_count++;
+
 	if (this->calc_count > this->CALC_COUNT_LIMIT) {
 		this->parameter = this->DEFAULT_PARAMETER;
 	}
@@ -256,38 +403,45 @@ size_t Solver::ProblemIteratorHasher::operator() (const problem_iterator& iterat
 	return (size_t)&(*iterator);
 }
 
-
-Solver::MethodData::MethodData(problem_iterator _problem) : problem(_problem)
-{
-	this->trials.emplace(this->input.left, 0.0, 0);
-	this->trials.emplace(this->input.right, 0.0, 0);
-
-	Trial mid_node((this->input.left + this->input.right) / 2.0);
-	mid_node.perform_trial(this->problem);
-	this->trials.insert(mid_node);
-
-	this->sln_estimator.error = fabs(input.right - input.left);
-
-	this->init_function_stats();
-
-	this->init_trial_subsets();
-
-	this->update_trial_subsets();
-}
-
 /*
 bool Solver::MethodData::operator==(const MethodData& cmp) const
 {
-	return this->problem_number == cmp.problem_number;
+return this->problem_number == cmp.problem_number;
 }
 */
 
 /*
 size_t Solver::MethodData::hash() const
 {
-	return this->problem_number;
+return this->problem_number;
 }
 */
+
+
+Solver::MethodData::MethodData(problem_iterator _problem) : problem(_problem)
+{
+	starting_stamp = tbb::tick_count::now();
+
+	trials.emplace(this->input.left, 0.0, 0);
+	trials.emplace(this->input.right, 0.0, 0);
+
+	Trial mid_node((this->input.left + this->input.right) / 2.0);
+
+	mid_node.perform_trial(this->problem);
+
+	trials.insert(mid_node);
+
+	sln_estimator.set_initial_error(fabs(input.right - input.left));
+
+	init_function_stats();
+
+	init_trial_subsets();
+
+	update_trial_subsets(mid_node);
+
+	init_segment_set();
+}
+
 
 void Solver::MethodData::init_function_stats()
 {
@@ -307,63 +461,38 @@ void Solver::MethodData::init_trial_subsets()
 }
 
 
-void Solver::MethodData::update_trial_subsets()
+void Solver::MethodData::init_segment_set()
 {
-	this->update_method_parameters();
-
-	this->calc_lower_lip_const();
-
-	this->calc_min_estimators();
-}
-
-void Solver::MethodData::calc_lower_lip_const()
-{
-	for (auto i = subsets.begin(); i != --subsets.end(); i++)
+	for (auto left_node = trials.begin(); left_node != --trials.end(); left_node++)
 	{
-		i->second.min_estimator = 0.0;
+		auto next = std::next(left_node);
+
+		Interval curr_segment(problem, *left_node, *next);
+
+		curr_segment.calc_characteristic(subsets);
+
+		segment_set.push_back(curr_segment);
 	}
-
-	auto max_nu = subsets.rbegin();
-
-	max_nu->second.calc_subset_min_estimate();
-}
-
-
-void Solver::MethodData::calc_min_estimators()
-{
-	for (auto& subset_index: subsets)
-	{
-		subset_index.second.calc_subset_lower_lip_const();
-	}
-}
-
-
-void Solver::MethodData::update_method_parameters()
-{
-	for (auto& subset_index : subsets)
-	{
-		subset_index.second.method_parameter = function_stats.at(subset_index.first).parameter;
-	}
-}
-
-
-void Solver::MethodData::add_trial(const Trial& another_trial)
-{
-	this->trials.insert(another_trial);
-
-	this->trials_count++;
-
-	this->update_stats(another_trial);
-
-	this->update_solution(another_trial);
-
-	this->add_trial_to_subset(another_trial);
 }
 
 
 void Solver::MethodData::add_trial_to_subset(const Trial& another_trial)
 {
-	this->subsets[another_trial.nu].insert(another_trial);
+	subsets[another_trial.nu].insert(another_trial);
+}
+
+
+bool Solver::MethodData::update_trial_subsets(const Trial& another_trial)
+{
+	bool subset_parameter_changed = false;
+
+	subset_parameter_changed |= update_method_parameters(another_trial);
+
+	subset_parameter_changed |= update_lip_const_lower_estimation(another_trial);
+
+	subset_parameter_changed |= update_min_estimators(another_trial);
+
+	return subset_parameter_changed;
 }
 
 
@@ -376,6 +505,45 @@ void Solver::MethodData::update_stats(const Trial& another_trial)
 			function_index.second.update();
 		}
 	}
+}
+
+bool Solver::MethodData::update_method_parameters(const Trial& another_trial)
+{
+	update_stats(another_trial);
+
+	return subsets[another_trial.nu].update_subset_method_parameter(
+		function_stats[another_trial.nu].parameter);
+}
+
+
+bool Solver::MethodData::update_lip_const_lower_estimation(const Trial& another_trial)
+{
+	return subsets[another_trial.nu].
+		update_subset_lip_const_lower_estimation(another_trial);
+}
+
+
+bool Solver::MethodData::update_min_estimators(const Trial& another_trial)
+{
+	auto max_nu = subsets.rbegin()->first;
+
+	if (another_trial.nu == max_nu)
+	{
+		bool min_estimate_changed = false;
+
+		for (auto subset = subsets.begin(); subset != --subsets.end(); subset++)
+		{
+			min_estimate_changed |= subset->second.check_and_set_zero();
+		}
+
+
+		min_estimate_changed |=
+			subsets[another_trial.nu].update_subset_min_estimate(another_trial);
+
+		return min_estimate_changed;
+	}
+
+	return false;
 }
 
 
@@ -394,14 +562,78 @@ void Solver::MethodData::update_solution(const Trial& another_trial)
 
 			if (error < this->input.method_eps)
 			{
-				// this->total_trials_count = MethodData::global_trials_count;
-
 				this->total_trials_count = MethodData::global_trials_count;
 				this->total_iterations_count = MethodData::global_iterations_count;
 				this->method_finished = true;
 			}
 		}
 	}
+}
+
+
+void Solver::MethodData::update_trial_subsets()
+{
+	this->update_method_parameters();
+
+	this->update_lower_lip_const();
+
+	this->calc_min_estimators();
+}
+
+
+void Solver::MethodData::update_lower_lip_const()
+{
+	/*
+	for (auto subset = subsets.begin(); subset != --subsets.end(); subset++)
+	{
+	subset->second.min_estimator = 0.0;
+	}
+
+	auto max_nu = subsets.rbegin();
+
+	max_nu->second.calc_subset_lower_lip_const();
+	*/
+	
+}
+
+
+void Solver::MethodData::update_method_parameters()
+{
+	for (auto& subset_index : subsets)
+	{
+		subset_index.second.method_parameter =
+			function_stats.at(subset_index.first).parameter;
+	}
+}
+
+
+
+// probably only update is needed!
+void Solver::MethodData::calc_min_estimators()
+{
+	for (auto& subset_index: subsets)
+	{
+		subset_index.second.calc_subset_min_estimate();
+
+		// subset_index.second.calc_subset_lower_lip_const();
+	}
+}
+
+
+
+
+
+void Solver::MethodData::add_trial(const Trial& another_trial)
+{
+	this->trials.insert(another_trial);
+
+	this->trials_count++;
+
+	this->update_stats(another_trial);
+
+	this->update_solution(another_trial);
+
+	this->add_trial_to_subset(another_trial);
 }
 
 
@@ -418,6 +650,21 @@ void Solver::MethodData::construct_segment_set(std::multiset<Interval>& segments
 		segments.insert(curr_segment);
 	}
 }
+
+
+void Solver::MethodData::add_new_trial(const Trial& another_trial)
+{
+	trials.insert(another_trial);
+
+	trials_count++;
+
+	update_solution(another_trial);
+
+	add_trial_to_subset(another_trial);
+
+	update_interval_charateristics = update_trial_subsets(another_trial);
+}
+
 
 
 bool Solver::MethodData::is_finished() const
@@ -452,12 +699,74 @@ double Solver::MethodData::get_error_value() const
 }
 
 
-/*
-void Solver::IntervalContainer::split_interval()
+void Solver::MethodData::split_interval(const std::pair<Interval, Trial> &new_trial_data)
 {
+	auto old_interval = new_trial_data.first;
 
+
+	Interval left_subinterval(problem, old_interval.left_node, new_trial_data.second);
+	left_subinterval.calc_characteristic(subsets);
+
+	segment_set.push_back(left_subinterval);
+
+	Interval right_subinterval(problem, new_trial_data.second, old_interval.right_node);
+	right_subinterval.calc_characteristic(subsets);
+
+	segment_set.push_back(right_subinterval);
 }
-*/
+
+
+void Solver::MethodData::sort_segment_set()
+{
+	segment_set.sort();
+}
+
+void Solver::MethodData::parallel_perform_iteration()
+{
+	sort_segment_set();
+
+	tbb::concurrent_vector<std::pair<Interval, Trial>> new_trials;
+
+	auto segments_end = segment_set.begin();
+
+	if (segment_set.size() < input.num_threads)
+	{
+		segments_end = segment_set.end();
+	}
+	else
+	{
+		std::advance(segments_end, input.num_threads);
+	}
+
+	tbb::parallel_do(segment_set.begin(), segments_end,
+		[&new_trials](const Interval &target_segment) {
+		Trial new_trial = target_segment.create_new_trial();
+
+		new_trials.push_back(std::make_pair(target_segment, new_trial));
+	});
+
+	for (const auto &trial_to_process : new_trials)
+	{
+		auto target_interval_position = std::find(segment_set.begin(),
+			segment_set.end(), trial_to_process.first);
+
+		segment_set.erase(target_interval_position);
+
+		add_new_trial(trial_to_process.second);
+
+		split_interval(trial_to_process);		
+	}
+
+	if (update_interval_charateristics)
+	{
+		for (auto &segment : segment_set)
+		{
+			segment.calc_characteristic(subsets);
+		}
+
+		update_interval_charateristics = false;
+	}
+}
 
 void Solver::Interval::calc_characteristic(const trial_subsets& subsets)
 {
@@ -692,9 +1001,6 @@ void Solver::MethodDataContainer::update_errors(errors_vector& errors_by_trials)
 	}
 	average_error /= this->problem_series_container.size();
 	errors_by_trials.push_back(std::make_pair(MethodData::global_trials_count, std::make_pair(average_error, max_error)));
-	// errors_by_trials.push_back(std::make_pair(num_trials, std::make_pair(average_error, max_error)));
-
-	// metrics.errors_by_trials.push_back(std::make_pair(num_trials, std::make_pair(average_error, max_error)));
 }
 
 
@@ -719,20 +1025,20 @@ void Solver::SimultaneousMethodDataContainer::add_problem(problem_iterator probl
 Solver::MetricsContainer::MetricsContainer(Input input)
 {
 	double dist = fabs(input.right - input.left);
-	this->errors_by_trials.push_back(std::make_pair(0, std::make_pair(dist, dist)));
-	// this->errors_by_trials.emplace_back(0, dist, dist);
-
-	/*
-	this->average_error_by_trials.emplace_back(0, dist);
-	this->max_error_by_trials.emplace_back(0, dist);
-	*/
-	
+	errors_by_trials.push_back(std::make_pair(0, std::make_pair(dist, dist)));
 
 	// this->max_error_by_trials.emplace_back(0, 0.5 * distance);
 }
 
 
-void Solver::MethodDataContainer::dump_solving_results(std::list<ProblemSolvingResult>& results)
+void Solver::MethodDataContainer::add_problem(problem_iterator problem)
+{
+	problem_series_container.emplace(problem, problem);
+}
+
+
+void Solver::MethodDataContainer::dump_solving_results(
+	std::list<ProblemSolvingResult>& results)
 {
 	for (const auto& method_data_index : this->problem_series_container)
 	{
@@ -751,15 +1057,6 @@ void Solver::DynamicMethodDataContainer::enqueue_problem(problem_iterator proble
 	//this->problem_queue.push(problem);
 }
 
-
-/*
-bool Solver::DynamicMethodDataContainer::queue_is_empty()
-{
-	return this->problem_queue.empty();
-}
-*/
-
-
 void Solver::DynamicMethodDataContainer::init_workers(unsigned int num_threads)
 {
 	for (size_t i = 0; i < num_threads; i++)
@@ -775,11 +1072,9 @@ void Solver::DynamicMethodDataContainer::take_problem_from_queue()
 	{
 		auto another_problem_to_solve = problem_queue.front();
 		problem_queue.pop();
-		//auto target_problem_data = this->problem_series_container.find(another_problem_to_solve);
 		auto target_problem_data = this->problem_series_container.find(ProblemIterator(another_problem_to_solve));
 
 		active_solving_problems.push_front(std::ref(target_problem_data->second));
-		// active_solving_problems.push_front(target_problem_data->second);
 	}
 }
 
@@ -854,7 +1149,8 @@ void Solver::DynamicMethodDataContainer::complete_iteration()
 	/*
 	 * note: there is no increment in the loop construct
 	 */
-	for (auto ref_iterator = active_solving_problems.begin(); ref_iterator != active_solving_problems.end();)
+	for (auto ref_iterator = active_solving_problems.begin();
+		ref_iterator != active_solving_problems.end();)
 	{
 		auto& solving_problem = (*ref_iterator).get();
 		if (solving_problem.is_finished())
@@ -893,9 +1189,9 @@ void Solver::run_simultaneous_search(Output& out)
 
 	start_time = tbb::tick_count::now();
 	SimultaneousMethodDataContainer problems_method_data;
-	for (auto i = problems.begin(); i != problems.end(); ++i)
+	for (auto problem = problems.begin(); problem != problems.end(); ++problem)
 	{
-		problems_method_data.add_problem(i);
+		problems_method_data.add_problem(problem);
 	}
 
 	do
@@ -916,7 +1212,8 @@ void Solver::run_simultaneous_search(Output& out)
 			std::advance(segments_end, input.num_threads);
 		}
 
-		problems_method_data.parallel_perform_iteration(std::multiset<Interval>(all_segments.begin(), segments_end));
+		problems_method_data.parallel_perform_iteration(
+			std::multiset<Interval>(all_segments.begin(), segments_end));
 
 		/*for (auto segment_iter = all_segments.begin(); segment_iter != segments_end; ++segment_iter)
 		{
@@ -949,9 +1246,10 @@ void Solver::run_dynamic_search(Output& out)
 	start_time = tbb::tick_count::now();
 	DynamicMethodDataContainer problems_method_data;
 
-	for (auto i = this->problems.begin(); i != this->problems.end(); ++i)
+	for (auto problem = this->problems.begin();
+		problem != this->problems.end(); ++problem)
 	{
-		problems_method_data.enqueue_problem(i);
+		problems_method_data.enqueue_problem(problem);
 	}
 
 	problems_method_data.init_workers(input.num_threads);
@@ -959,7 +1257,6 @@ void Solver::run_dynamic_search(Output& out)
 	do
 	{
 		problems_method_data.parallel_perform_iteration();
-		// problems_method_data.perform_iteration();
 
 		problems_method_data.update_metrics(out.metrics);
 
@@ -980,6 +1277,20 @@ void Solver::run_sequential_search(Output& out)
 
 	start_time = tbb::tick_count::now();
 
+	for (auto problem = this->problems.begin();
+		problem != this->problems.end(); ++problem)
+	{
+		MethodData method_data(problem);
+		do
+		{
+			method_data.parallel_perform_iteration();
+		} while (!method_data.is_finished());
+
+		out.add_problem_solving_result(method_data);
+	}
+
+	finish_time = tbb::tick_count::now();
+	out.elapsed_time = (finish_time - start_time).seconds();
 }
 
 void Solver::run_solver(Output& out) {
