@@ -110,14 +110,14 @@ void Solver::TrialSubset::calc_subset_min_estimate()
 {
 	double zmin = DBL_MAX;
 
-	for (const auto& trial : this->subset)
+	for (const auto& trial : subset)
 	{
 		if (trial.z < zmin)
 		{
 			zmin = trial.z;
 		}
 	}
-	this->min_estimator = zmin;
+	min_estimator = zmin;
 }
 
 
@@ -656,6 +656,11 @@ void Solver::MethodData::construct_segment_set(std::multiset<Interval>& segments
 
 void Solver::MethodData::add_new_trial(const Trial& another_trial)
 {
+	if (method_finished)
+	{
+		return;
+	}
+
 	trials.insert(another_trial);
 
 	trials_count++;
