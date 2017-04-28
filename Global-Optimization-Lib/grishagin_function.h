@@ -44,8 +44,6 @@ public:
 
 	int getFunctionSequentialNumber();
 	double getValue(double arg) override;
-
-	//double get
 };
 
 #endif

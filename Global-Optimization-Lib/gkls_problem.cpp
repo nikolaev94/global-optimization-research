@@ -31,9 +31,22 @@ double GklsProblem::getReferenceMinError(double scalar)
 	return distance;
 }
 
+double GklsProblem::getReferenceMinimum()
+{
+	double* min_point = new double[GklsFunction::GKLS_dim];
+
+	objective->getFunctionMinimum(min_point);
+
+	delete[] min_point;
+
+	return 0.0;
+}
+
+
+
 double GklsProblem::getContraintValue(std::size_t number, double arg) const
 {
-	return 0.0f;
+	return 0.0;
 }
 
 std::size_t GklsProblem::getConstraintsNumber() const

@@ -73,10 +73,10 @@ GklsFunction::GklsFunction(const GklsFunction& src)
 }
 
 
-double GklsFunction::getValue(double arg)
+double GklsFunction::getValue(double argument)
 {
 	double* point = new double[GKLS_dim];
-	mapd(arg, PRECISION, point, GKLS_dim, KEY);
+	mapd(argument, PRECISION, point, GKLS_dim, KEY);
 	linear_transform(point);
 	double func_value = 0.0;
 	switch (this->func_type)
@@ -112,6 +112,13 @@ void GklsFunction::mapScalar_To_nDSpace(double x, double point[])
 	mapd(x, PRECISION, point, GKLS_dim, KEY);
 	linear_transform(point);
 }
+
+
+void GklsFunction::map_nDVector_To_Scalar(double point[], double x)
+{
+	
+}
+
 
 
 void ::GklsFunction::setFunctionType(FunctionType type)

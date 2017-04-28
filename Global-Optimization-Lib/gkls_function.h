@@ -85,6 +85,7 @@ public:
 
 	void setFunctionType(FunctionType);
 	static void mapScalar_To_nDSpace(double x, double point[]);
+	static void map_nDVector_To_Scalar(double point[], double x);
 	void getFunctionMinimum(double min_pt[]);
 
 	double getValue(double arg) override;

@@ -16,6 +16,7 @@ public:
 	virtual double getContraintValue(std::size_t number, double arg) const = 0;
 	virtual std::size_t getConstraintsNumber() const = 0;
 	virtual double getReferenceMinError(double scalar) = 0;
+	virtual double getReferenceMinimum() = 0;
 	virtual unsigned getDimention() = 0;
 };
 

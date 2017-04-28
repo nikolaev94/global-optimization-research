@@ -140,13 +140,19 @@ double GrishaginProblem::getObjectiveValue(double arg) const
 }
 
 
+double GrishaginProblem::getReferenceMinimum()
+{
+	return 0.0;
+}
+
+
 double GrishaginProblem::getContraintValue(std::size_t number, double arg) const
 {
-	return 0.0f;
+	return 0.0;
 }
 
 
 std::size_t GrishaginProblem::getConstraintsNumber() const
 {
-	return 0u;
+	return 0;
 }

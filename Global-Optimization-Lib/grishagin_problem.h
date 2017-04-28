@@ -18,10 +18,12 @@ public:
 	GrishaginProblem(GrishaginFunction::GrishaginFunctionPtr);
 	~GrishaginProblem();
 	double getReferenceMinError(double scalar) override;
+	double getReferenceMinimum() override;
 	unsigned getDimention() override;
 
 	double getObjectiveValue(double arg) const override;
 	double getContraintValue(std::size_t number, double arg) const override;
+	
 	std::size_t getConstraintsNumber() const override;
 };
 

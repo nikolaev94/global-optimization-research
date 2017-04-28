@@ -79,8 +79,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\Global-Optimization-Lib\;$(TBBIncludeDir);$(IncludePath)</IncludePath>
-    <LibraryPath>$(ICPP_COMPILER16)\compiler\lib\intel64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\Global-Optimization-Lib\;$(TBBIncludeDir);$(I_MPI_ROOT)\intel64\include\;$(SolutionDir)\dislin\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ICPP_COMPILER16)\compiler\lib\intel64;$(SolutionDir)\dislin\x64\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -93,8 +93,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\Global-Optimization-Lib;$(TBBIncludeDir);$(IncludePath)</IncludePath>
-    <LibraryPath>$(ICPP_COMPILER16)\compiler\lib\intel64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\Global-Optimization-Lib;$(TBBIncludeDir);$(I_MPI_ROOT)\intel64\include\;$(SolutionDir)\dislin\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ICPP_COMPILER16)\compiler\lib\intel64;$(SolutionDir)\dislin\x64\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -129,7 +129,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>discpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
@@ -170,6 +170,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>discpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

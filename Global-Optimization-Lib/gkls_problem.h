@@ -22,6 +22,7 @@ public:
 	virtual std::size_t getConstraintsNumber() const override;
 
 	virtual double getReferenceMinError(double scalar) override;
+	virtual double getReferenceMinimum() override;
 	virtual unsigned getDimention() override;
 };
 

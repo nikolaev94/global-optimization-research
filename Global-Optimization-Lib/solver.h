@@ -17,6 +17,7 @@
 #include <tbb/task_scheduler_init.h>
 #include <tbb/tick_count.h>
 
+#include <mpi.h>
 
 //#include <mpi.h>
 

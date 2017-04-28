@@ -11,6 +11,7 @@ void UserParameters::show_usage()
 	std::cout << "-e --eps <float>: Method precison" << std::endl;
 	std::cout << "-w --workers <integer>: Number of workers" << std::endl;
 	std::cout << "-n <integer>: Size of the generated problem series" << std::endl;
+	std::cout << "-i <integer>: Solve provided problem in demo mode" << std::endl;
 
 	exit(EXIT_SUCCESS);
 }
@@ -202,6 +203,29 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 				exit(EXIT_FAILURE);
 			}
 		}
+		else if (option == "-i")
+		{
+			if (i + 1 < argc)
+			{
+				int problem_no = atoi(argv[++i]);
+
+				if (problem_no < 1)
+				{
+					std::cerr << option << ": argument "
+						<< problem_no << " is invalid" << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				else
+				{
+					this->problem_no = static_cast<unsigned> (problem_no);
+				}
+			}
+			else
+			{
+				std::cerr << option << " option requires one argument." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
 		else
 		{
 			std::cerr << option << ": unknown option." << std::endl;
@@ -218,6 +242,12 @@ unsigned int UserParameters::get_dimensions() const
 unsigned int UserParameters::get_series_size() const
 {
 	return this->series_size;
+}
+
+
+unsigned int UserParameters::get_selected_problem_no() const
+{
+	return this->problem_no;
 }
 
 
