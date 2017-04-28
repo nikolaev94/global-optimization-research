@@ -377,10 +377,11 @@ double Solver::FunctionStatsInfo::initial_parameter = 10.0;
 
 void Solver::FunctionStatsInfo::update()
 {
-	this->calc_count++;
+	calc_count++;
 
-	if (this->calc_count > this->CALC_COUNT_LIMIT) {
-		this->parameter = this->DEFAULT_PARAMETER;
+	if (calc_count > CALC_COUNT_LIMIT)
+	{
+		parameter = DEFAULT_PARAMETER;
 	}
 }
 
@@ -545,8 +546,8 @@ void Solver::MethodData::update_solution(const Trial& another_trial)
 {
 	if (another_trial.admissible)
 	{
-		OptProblem* opt_problem = this->problem->get();
-		double error = opt_problem->getReferenceMinError(another_trial.x);
+		//OptProblem* opt_problem = this->problem->get();
+		double error = (*problem)->getReferenceMinError(another_trial.x);
 
 		if (error < this->sln_estimator.error)
 		{
@@ -556,6 +557,7 @@ void Solver::MethodData::update_solution(const Trial& another_trial)
 
 			if (error < this->input.method_eps)
 			{
+				calc_elapsed_time();
 				this->total_trials_count = MethodData::global_trials_count;
 				this->total_iterations_count = MethodData::global_iterations_count;
 				this->method_finished = true;
@@ -939,14 +941,22 @@ void Solver::SimultaneousMethodDataContainer::split_interval(
 
 void Solver::SimultaneousMethodDataContainer::update_segment_set()
 {
+	all_segments.erase(std::remove_if(all_segments.begin(), all_segments.end(),
+		[this](const Interval &segment) {
+		auto target_method_data = problem_series_container.find(segment.problem);
+
+		return target_method_data->second.is_finished();
+	}), all_segments.end());
+
+
 	for (auto& segment : all_segments)
 	{
 		auto target_method_data = problem_series_container.find(segment.problem);
 
-		if (target_method_data->second.is_finished())
+		/*if (target_method_data->second.is_finished())
 		{
 			continue;
-		}
+		}*/
 
 		if (target_method_data->second.do_update_interval_charateristics)
 		{
@@ -1330,45 +1340,9 @@ void Solver::run_simultaneous_search(Output& out)
 
 	do
 	{
-
 		problems_method_data.parallel_perform_iteration();
 
 		problems_method_data.update_metrics(out.metrics);
-
-		/*std::multiset<Interval> all_segments;
-		problems_method_data.construct_and_merge_sets(all_segments);
-
-		auto segments_end = all_segments.begin();
-		
-		 * Need to check if end is reached
-		if (all_segments.size() < input.num_threads)
-		{
-			segments_end = all_segments.end();
-		}
-		else
-		{
-			std::advance(segments_end, input.num_threads);
-		}
-
-		problems_method_data.parallel_perform_iteration(
-			std::multiset<Interval>(all_segments.begin(), segments_end));
-			*/
-
-		/*for (auto segment_iter = all_segments.begin(); segment_iter != segments_end; ++segment_iter)
-		{
-			Trial another_trial = segment_iter->create_new_trial();
-
-			/*
-			 * Updating global trial counter
-			 *
-			MethodData::global_trials_count++;
-
-			problems_method_data.add_new_trial(segment_iter->problem, another_trial);
-		}*/
-
-		//problems_method_data.update_metrics(out.metrics);
-
-		//problems_method_data.complete_iteration();
 	} while (!problems_method_data.is_all_finished());
 
 	finish_time = tbb::tick_count::now();
@@ -1383,6 +1357,7 @@ void Solver::run_dynamic_search(Output& out)
 	tbb::tick_count start_time, finish_time;
 
 	start_time = tbb::tick_count::now();
+
 	/*DynamicMethodDataContainer problems_method_data;
 
 	for (auto problem = this->problems.begin();
@@ -1425,9 +1400,6 @@ void Solver::run_sequential_search(Output& out)
 		{
 			method_data.parallel_perform_iteration();
 		} while (!method_data.is_finished());
-
-		method_data.calc_elapsed_time();
-
 		out.add_problem_solving_result(method_data);
 	}
 

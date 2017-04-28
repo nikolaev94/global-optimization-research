@@ -10,6 +10,7 @@ void UserParameters::show_usage()
 	std::cout << "-p --parameter <float>: Method initial parameter" << std::endl;
 	std::cout << "-e --eps <float>: Method precison" << std::endl;
 	std::cout << "-w --workers <integer>: Number of workers" << std::endl;
+	std::cout << "-n <integer>: Size of the generated problem series" << std::endl;
 
 	exit(EXIT_SUCCESS);
 }
@@ -178,6 +179,29 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 				exit(EXIT_FAILURE);
 			}
 		}
+		else if (option == "-n")
+		{
+			if (i + 1 < argc)
+			{
+				int series_size = atoi(argv[++i]);
+
+				if (series_size < 1)
+				{
+					std::cerr << option << ": argument "
+						<< series_size << " is invalid" << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				else
+				{
+					this->series_size = static_cast<unsigned> (series_size);
+				}
+			}
+			else
+			{
+				std::cerr << option << " option requires one argument." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
 		else
 		{
 			std::cerr << option << ": unknown option." << std::endl;
@@ -190,6 +214,12 @@ unsigned int UserParameters::get_dimensions() const
 {
 	return this->dimensions;
 }
+
+unsigned int UserParameters::get_series_size() const
+{
+	return this->series_size;
+}
+
 
 FunctionClass UserParameters::get_function_class() const
 {

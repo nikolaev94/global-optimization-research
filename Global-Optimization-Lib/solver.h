@@ -323,8 +323,6 @@ private:
 
 		bool is_finished() const;
 
-		void calc_elapsed_time();
-
 		unsigned get_num_trials() const;
 		double get_error_value() const;
 
@@ -350,9 +348,9 @@ private:
 		void init_trial_subsets();
 		void init_segment_set();
 
-		void update_solution(const Trial&);
-
 		void add_trial_to_subset(const Trial&);
+
+		void update_solution(const Trial&);
 
 		bool update_trial_subsets(const Trial&);
 		void update_stats(const Trial&);
@@ -363,6 +361,8 @@ private:
 		void sort_segment_set();
 
 		void split_interval(const std::pair<Interval, Trial>&);
+
+		void calc_elapsed_time();
 
 
 		// DEPRECATED:

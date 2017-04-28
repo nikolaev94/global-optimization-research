@@ -89,8 +89,9 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 		exit(EXIT_FAILURE);
 	}
 
+	auto series_size = user_parameters.get_series_size();
 
-	for (std::size_t i = 1; i <= 2; i++)
+	for (std::size_t i = 1; i <= series_size; i++)
 	{
 		GklsFunction::GklsFunctionPtr gkls_function(new GklsFunction(GklsFunction::D2, i));
 		problems.push_back(OptProblem::OptProblemPtr(new GklsProblem(gkls_function)));
