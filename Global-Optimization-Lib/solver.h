@@ -87,10 +87,6 @@ public:
 		ProblemSolvingResult(const MethodData& method_data)
 			: solved_problem(method_data.problem)
 		{
-			auto finishing_stamp = tbb::tick_count::now();
-
-
-
 			// this->iterations = method_data.iterations_count;
 			this->xmin = method_data.sln_estimator.xmin;
 			this->zmin = method_data.sln_estimator.zmin;
@@ -98,6 +94,7 @@ public:
 			this->trials = method_data.trials_count;
 			this->iterations = method_data.total_iterations_count;
 			this->total_trials = method_data.total_trials_count;
+			this->elapsed_time = method_data.elapsed_time_in_seconds;
 			this->correctness = true;
 		}
 	};
@@ -229,6 +226,7 @@ private:
 		
 		Trial create_new_trial() const;
 	private:
+		double sgn(double arg) const;
 		double get_new_point() const;
 		double get_interval_length();
 	};
@@ -280,9 +278,6 @@ private:
 		SolutionEstimator() : xmin(0.0), zmin(DBL_MAX), error(DBL_MAX) {}
 	};
 
-	
-
-
 	struct MethodData
 	{
 		typedef std::vector<Interval>::iterator interval_iterator;
@@ -300,15 +295,21 @@ private:
 		unsigned total_trials_count = 0;
 		unsigned total_iterations_count = 0;
 
+		double elapsed_time_in_seconds = 0.0;
+
 		SolutionEstimator sln_estimator;
-		OptProblem::OptProblemPtr _problem;
 		problem_iterator problem;
+
+		bool do_update_interval_charateristics = false;
+
+		void update_interval_charateristic(Interval&);
+
+		void merge_segment_set_into(std::list<Interval>&);
 
 		void parallel_perform_iteration();
 		
 
 		void dump_solving_result(std::list<ProblemSolvingResult>& results);
-
 
 		void add_new_trial(const Trial&);
 
@@ -322,6 +323,8 @@ private:
 
 		bool is_finished() const;
 
+		void calc_elapsed_time();
+
 		unsigned get_num_trials() const;
 		double get_error_value() const;
 
@@ -331,10 +334,9 @@ private:
 
 	private:
 		tbb::tick_count starting_stamp;
+		tbb::tick_count finishing_stamp;
 
 		bool method_finished = false;
-
-		bool update_interval_charateristics = false;
 
 		std::set<Trial> trials;
 
@@ -374,32 +376,76 @@ private:
 		size_t operator() (const problem_iterator&) const;
 	};
 
+
 	struct MethodDataContainer
 	{
-		void add_problem(problem_iterator);
 		bool is_all_finished();
+
 		void dump_solving_results(std::list<ProblemSolvingResult>&);
+
 		void update_metrics(MetricsContainer&);
+
+		MethodDataContainer(const problem_list& in_problems)
+		{
+			for (auto problem = in_problems.begin();
+				problem != in_problems.end(); ++problem)
+			{
+				add_problem(problem);
+			}
+		}
+
+	private:
+		void add_problem(problem_iterator);
 	protected:
 		std::map<ProblemIterator, MethodData> problem_series_container;
 
 		void update_errors(errors_vector&);
 		void update_portion(portion_vector&);
 
-		// std::unordered_map<problem_iterator, MethodData, ProblemIteratorHasher>
+		//std::unordered_map<problem_iterator, MethodData, ProblemIteratorHasher>
 	};
 
 
 	struct SimultaneousMethodDataContainer : public MethodDataContainer
 	{	
-		static tbb::mutex mutex;
+		//static tbb::mutex mutex;
+
+
+
 		void construct_and_merge_sets(std::multiset<Interval>&);
-		void add_new_trial(problem_iterator, Trial);
+
+		//void add_new_trial(problem_iterator, Trial);
+
 		void complete_iteration();
+
 		void add_problem(problem_iterator);
+
 		void parallel_perform_iteration(const std::multiset<Interval>&);
 
-		SimultaneousMethodDataContainer() {}
+		void parallel_perform_iteration();
+
+		
+
+		SimultaneousMethodDataContainer(const problem_list &in_problems)
+			: MethodDataContainer(in_problems)
+		{
+			merge_segment_sets();
+		}
+
+	private:
+		std::list<Interval> all_segments;
+
+		void merge_segment_sets();
+
+		void sort_segment_set();
+
+		void add_new_trial(const std::pair<problem_iterator, Trial>&);
+
+		//void add_new_trial(problem_iterator, const Trial&);
+
+		void split_interval(const std::pair<Interval, Trial>&);
+
+		void update_segment_set();
 	};
 
 	struct DynamicMethodDataContainer : public MethodDataContainer
@@ -410,7 +456,8 @@ private:
 		void parallel_perform_iteration();
 		void complete_iteration();
 
-		DynamicMethodDataContainer() {}
+		DynamicMethodDataContainer(const problem_list& in_problems)
+			: MethodDataContainer(in_problems) {}
 	private:
 		void take_problem_from_queue();
 
@@ -427,8 +474,6 @@ private:
 
 	typedef std::set<Interval>::const_iterator target_interval;
 
-	static double sgn(double arg);
-
 	bool check_all_problem(const MethodData&);
 
 	void run_simultaneous_search(Output&);
@@ -437,8 +482,7 @@ private:
 
 public:
 
-	Solver();
-	Solver(const Input&);
+	Solver() = delete;
 	Solver(const Input&, const problem_list&);
 	~Solver();
 

@@ -37,8 +37,7 @@ int main(int argc, char* argv[])
 		*/
 
 	Solver::Input input = { 0.0, 1.0, user_parameters.get_precision(), user_parameters.get_method_parameter(),
-		user_parameters.get_workers_number(), Solver::SEQUENTIAL };
-	
+		user_parameters.get_workers_number(), Solver::SIMULTANEOUS };
 
 	Solver::Output output(input);
 
