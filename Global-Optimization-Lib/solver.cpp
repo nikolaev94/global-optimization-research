@@ -21,7 +21,7 @@ void Solver::Output::dump_results_to_file(const std::string& filename)
 		<< "Problem trials" << ';' << "Iterations" << ';'
 		<< "Total trials" << ';' << "Time" << ';' << std::endl;
 
-	for (const auto& res : this->results)
+	for (const auto& res : results)
 	{
 		ofstream << res.xmin << ';' << res.zmin << ';' << res.error << ';'
 			<< res.trials << ';' << res.iterations << ';'
@@ -549,13 +549,13 @@ void Solver::MethodData::update_solution(const Trial& another_trial)
 		//OptProblem* opt_problem = this->problem->get();
 		double error = (*problem)->getReferenceMinError(another_trial.x);
 
-		if (error < this->sln_estimator.error)
+		if (error < sln_estimator.error)
 		{
 			this->sln_estimator.error = error;
 			this->sln_estimator.xmin = another_trial.x;
 			this->sln_estimator.zmin = another_trial.z;
 
-			if (error < this->input.method_eps)
+			if (error < input.method_eps)
 			{
 				calc_elapsed_time();
 				this->total_trials_count = MethodData::global_trials_count;
@@ -570,6 +570,41 @@ void Solver::MethodData::update_solution(const Trial& another_trial)
 void Solver::MethodData::update_interval_charateristic(Interval& interval_to_process)
 {
 	interval_to_process.calc_characteristic(subsets);
+}
+
+
+Solver::Trial Solver::MethodData::get_new_trial()
+{
+	auto best_interval_iterator = segment_set.begin();
+
+	return best_interval_iterator->create_new_trial();
+}
+
+
+void Solver::MethodData::update_interval_charateristics()
+{
+	for (auto& segment : segment_set)
+	{
+		segment.calc_characteristic(subsets);
+	}
+}
+
+void Solver::MethodData::perform_iteration(MethodData &problem_data)
+{
+	problem_data.sort_segment_set();
+
+	Trial another_trial = problem_data.get_new_trial();
+
+	++MethodData::global_trials_count;
+
+	problem_data.add_new_trial(another_trial);
+
+	problem_data.split_best_interval(another_trial);
+
+	if (problem_data.do_update_interval_charateristics)
+	{
+		problem_data.update_interval_charateristics();
+	}
 }
 
 
@@ -714,6 +749,16 @@ double Solver::MethodData::get_error_value() const
 }
 
 
+void Solver::MethodData::split_best_interval(const Trial &new_trial)
+{
+	auto best_interval_iterator = segment_set.begin();
+
+	split_interval(std::make_pair(*best_interval_iterator, new_trial));
+
+	segment_set.erase(best_interval_iterator);
+}
+
+
 void Solver::MethodData::split_interval(const std::pair<Interval, Trial> &new_trial_data)
 {
 	auto old_interval = new_trial_data.first;
@@ -830,8 +875,9 @@ void Solver::Interval::calc_characteristic(const trial_subsets& subsets)
 
 double Solver::Interval::get_interval_length()
 {
-	OptProblem* opt_problem = problem->get();
-	unsigned problem_dim = opt_problem->getDimention();
+	//OptProblem* opt_problem = problem->get();
+
+	unsigned problem_dim = (*problem)->getDimention();
 	double delta = 0.0;
 	if (problem_dim > 1)
 	{
@@ -861,8 +907,9 @@ double Solver::Interval::get_new_point() const
 	}
 	else
 	{
-		OptProblem* opt_problem = problem->get();
-		unsigned problem_dim = opt_problem->getDimention();
+		//OptProblem* opt_problem = problem->get();
+
+		unsigned problem_dim = (*problem)->getDimention();
 		if (problem_dim > 1)
 		{
 			x = (right_node.x + left_node.x) / 2.0 - sgn(right_node.z - left_node.z)
@@ -881,8 +928,10 @@ double Solver::Interval::get_new_point() const
 
 Solver::Trial Solver::Interval::create_new_trial() const
 {
-	Trial another_trial(this->get_new_point());
-	another_trial.perform_trial(this->problem);
+	Trial another_trial(get_new_point());
+
+	another_trial.perform_trial(problem);
+
 	return another_trial;
 }
 
@@ -902,9 +951,6 @@ double Solver::Interval::sgn(double arg) const
 		return -1.0;
 	}
 }
-
-
-//tbb::mutex Solver::SimultaneousMethodDataContainer::mutex;
 
 
 void Solver::SimultaneousMethodDataContainer::sort_segment_set()
@@ -958,11 +1004,6 @@ void Solver::SimultaneousMethodDataContainer::update_segment_set()
 	{
 		auto target_method_data = problem_series_container.find(segment.problem);
 
-		/*if (target_method_data->second.is_finished())
-		{
-			continue;
-		}*/
-
 		if (target_method_data->second.do_update_interval_charateristics)
 		{
 			target_method_data->second.update_interval_charateristic(segment);
@@ -975,8 +1016,6 @@ void Solver::SimultaneousMethodDataContainer::parallel_perform_iteration()
 {
 	sort_segment_set();
 
-	tbb::concurrent_vector<std::pair<Interval, Trial>> new_trials;
-
 	auto segments_end = all_segments.begin();
 
 	if (all_segments.size() < MethodData::input.num_threads)
@@ -987,6 +1026,8 @@ void Solver::SimultaneousMethodDataContainer::parallel_perform_iteration()
 	{
 		std::advance(segments_end, MethodData::input.num_threads);
 	}
+
+	tbb::concurrent_vector<std::pair<Interval, Trial>> new_trials;
 
 	tbb::parallel_do(all_segments.begin(), segments_end,
 		[&new_trials](const Interval &target_segment) {
@@ -1024,83 +1065,6 @@ void Solver::SimultaneousMethodDataContainer::merge_segment_sets()
 
 		problem_data.merge_segment_set_into(all_segments);
 	}
-}
-
-void Solver::SimultaneousMethodDataContainer::construct_and_merge_sets(
-	std::multiset<Interval>& merged_set)
-{
-	for (const auto& method_data_index : this->problem_series_container)
-	{
-		auto& problem_data = method_data_index.second;
-		if (problem_data.is_finished())
-		{
-			continue;
-		}
-
-		std::multiset<Interval> problem_segments;
-		problem_data.construct_segment_set(problem_segments);
-		merged_set.insert(problem_segments.begin(), problem_segments.end());
-	}
-}
-
-
-/*
-void Solver::SimultaneousMethodDataContainer::add_new_trial(problem_iterator target_problem, Trial new_trial)
-{
-auto target_data = this->problem_series_container.find(ProblemIterator(target_problem));
-
-//SimultaneousMethodDataContainer::mutex.lock();
-target_data->second.add_trial(new_trial);
-//SimultaneousMethodDataContainer::mutex.unlock();
-}
-*/
-
-
-
-void Solver::SimultaneousMethodDataContainer::complete_iteration()
-{
-	MethodData::global_iterations_count++;
-
-	for (auto& method_data_index : this->problem_series_container)
-	{
-		auto& problem_data = method_data_index.second;
-
-		if (!problem_data.is_finished())
-		{
-			problem_data.update_trial_subsets();
-			// problem_data.iterations_count++;
-		}
-	}
-}
-
-
-void Solver::SimultaneousMethodDataContainer::parallel_perform_iteration(const std::multiset<Interval>& segments_to_consider)
-{
-	/*tbb::parallel_do(segments_to_consider.begin(), segments_to_consider.end(),
-		[this](const Interval& segment) -> void
-	{
-		Trial another_trial = segment.create_new_trial();
-
-		
-		* Updating global trial counter
-		
-		++MethodData::global_trials_count;
-
-		this->add_new_trial(segment.problem, another_trial);
-	});*/
-
-	/*
-	for (auto segment_iter = all_segments.begin(); segment_iter != segments_end; ++segment_iter)
-	{
-		Trial another_trial = segment_iter->create_new_trial();
-
-		/*
-		* Updating global trial counter
-		*
-		MethodData::global_trials_count++;
-
-		problems_method_data.add_new_trial(segment_iter->problem, another_trial);
-	}*/
 }
 
 
@@ -1199,19 +1163,19 @@ void Solver::MethodDataContainer::dump_solving_results(
 }
 
 
-void Solver::DynamicMethodDataContainer::enqueue_problem(problem_iterator problem)
+void Solver::DynamicMethodDataContainer::enqueue_problems(
+	const problem_list& problems_to_solve)
 {
-	this->problem_series_container.emplace(problem, problem);
-
-
-	this->problem_queue.emplace(problem);
-
-	//this->problem_queue.push(problem);
+	for (auto iterator = problems_to_solve.cbegin();
+		iterator != problems_to_solve.cend(); ++iterator)
+	{
+		problem_queue.push(iterator);
+	}
 }
 
 void Solver::DynamicMethodDataContainer::init_workers(unsigned int num_threads)
 {
-	for (size_t i = 0; i < num_threads; i++)
+	for (unsigned int i = 0; i < num_threads; i++)
 	{
 		take_problem_from_queue();
 	}
@@ -1220,11 +1184,14 @@ void Solver::DynamicMethodDataContainer::init_workers(unsigned int num_threads)
 
 void Solver::DynamicMethodDataContainer::take_problem_from_queue()
 {
-	if (!this->problem_queue.empty())
+	if (!problem_queue.empty())
 	{
 		auto another_problem_to_solve = problem_queue.front();
+
 		problem_queue.pop();
-		auto target_problem_data = this->problem_series_container.find(ProblemIterator(another_problem_to_solve));
+
+		auto target_problem_data =
+			problem_series_container.find(ProblemIterator(another_problem_to_solve));
 
 		active_solving_problems.push_front(std::ref(target_problem_data->second));
 	}
@@ -1277,26 +1244,37 @@ void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
 	tbb::parallel_do(active_solving_problems.begin(), active_solving_problems.end(),
 		[](std::reference_wrapper<MethodData> solving_problem_reference) -> void
 	{
-		auto& solving_problem = solving_problem_reference.get();
-
-		std::multiset<Interval> interval_set;
-		solving_problem.construct_segment_set(interval_set);
-		auto best_segment = interval_set.begin();
-		Trial another_trial = best_segment->create_new_trial();
-
-		/*
-		* Updating global trial counter
-		*/
-		++MethodData::global_trials_count;
-		//MethodData::global_trials_count++;
-
-		solving_problem.add_trial(another_trial);
+		MethodData::perform_iteration(solving_problem_reference);
 	});
+
+	++MethodData::global_iterations_count;
+
+	for (auto ref_iterator = active_solving_problems.begin();
+		ref_iterator != active_solving_problems.end();)
+	{
+		auto& solving_problem = (*ref_iterator).get();
+
+		if (solving_problem.is_finished())
+		{
+			ref_iterator = active_solving_problems.erase(ref_iterator);
+
+			take_problem_from_queue();
+		}
+		else
+		{
+			++ref_iterator;
+		}
+	}
+
+
+
 }
 
 void Solver::DynamicMethodDataContainer::complete_iteration()
 {
 	MethodData::global_iterations_count++;
+
+
 
 	/*
 	 * note: there is no increment in the loop construct
@@ -1363,30 +1341,19 @@ void Solver::run_dynamic_search(Output& out)
 
 	start_time = tbb::tick_count::now();
 
-	/*DynamicMethodDataContainer problems_method_data;
-
-	for (auto problem = this->problems.begin();
-		problem != this->problems.end(); ++problem)
-	{
-		problems_method_data.enqueue_problem(problem);
-	}
-
-	problems_method_data.init_workers(input.num_threads);
+	DynamicMethodDataContainer problems_method_data(problems);
 
 	do
 	{
 		problems_method_data.parallel_perform_iteration();
 
 		problems_method_data.update_metrics(out.metrics);
-
-		problems_method_data.complete_iteration();
 	} while (!problems_method_data.is_all_finished());
-	*/
 
 	finish_time = tbb::tick_count::now();
 	out.elapsed_time = (finish_time - start_time).seconds();
 
-	//problems_method_data.dump_solving_results(out.results);
+	problems_method_data.dump_solving_results(out.results);
 }
 
 
@@ -1413,11 +1380,11 @@ void Solver::run_sequential_search(Output& out)
 }
 
 void Solver::run_solver(Output& out) {
-	Solver::ProblemIterator::problem_list_begin = this->problems.begin();
+	Solver::ProblemIterator::problem_list_begin = problems.begin();
 
 	Solver::MethodData::set_method_input(input);
 
-	switch (this->input.solving_method)
+	switch (input.solving_method)
 	{
 	case SIMULTANEOUS:
 		run_simultaneous_search(out);

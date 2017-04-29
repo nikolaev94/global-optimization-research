@@ -14,11 +14,22 @@
 #include "problem_loader.h"
 #include "user_input.h"
 
-
-
-
 int main(int argc, char* argv[])
 {
+	MPI_Init(&argc, &argv);
+
+	int rank = 0;
+	int size = 0;
+
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+
+	std::cout << "Rank: " << rank << std::endl;
+
+	std::cout << "Size: " << size << std::endl;
+
 	UserParameters user_parameters;
 
 	user_parameters.parse_arguments_from_command_line(argc, argv);
@@ -37,7 +48,7 @@ int main(int argc, char* argv[])
 		*/
 
 	Solver::Input input = { 0.0, 1.0, user_parameters.get_precision(), user_parameters.get_method_parameter(),
-		user_parameters.get_workers_number(), Solver::SIMULTANEOUS };
+		user_parameters.get_workers_number(), user_parameters.get_solving_method() };
 
 	Solver::Output output(input);
 
@@ -50,6 +61,8 @@ int main(int argc, char* argv[])
 	output.dump_error_metrics_by_trials_to_file(prefix + "errors.csv");
 
 	output.dump_solved_problem_portion_by_trials_to_file(prefix + "portions.csv");
+
+	MPI_Finalize();
 	
 	/*
 	double xray[50], yray[50], zmat[50][50];

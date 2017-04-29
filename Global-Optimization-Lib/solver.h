@@ -289,6 +289,7 @@ private:
 
 		static void set_method_input(const Input&);
 
+		static void perform_iteration(MethodData&);
 		// unsigned iterations_count = 0;
 		// bool operator==(const MethodData&) const;
 
@@ -305,11 +306,14 @@ private:
 
 		void update_interval_charateristic(Interval&);
 
+		void update_interval_charateristics();
+
 		void merge_segment_set_into(std::list<Interval>&);
 
 		void parallel_perform_iteration();
-		
 
+		
+		
 		void dump_solving_result(std::list<ProblemSolvingResult>& results);
 
 		void add_new_trial(const Trial&);
@@ -359,7 +363,16 @@ private:
 		bool update_min_estimators(const Trial&);
 		bool update_lip_const_lower_estimation(const Trial&);
 
+		Trial get_new_trial();
+
+
+
+		//void update_interval();
+
 		void sort_segment_set();
+
+
+		void split_best_interval(const Trial&);
 
 		void split_interval(const std::pair<Interval, Trial>&);
 
@@ -400,6 +413,8 @@ private:
 	protected:
 		std::map<ProblemIterator, MethodData> problem_series_container;
 
+		
+
 		void update_errors(errors_vector&);
 		void update_portion(portion_vector&);
 
@@ -409,23 +424,9 @@ private:
 
 	struct SimultaneousMethodDataContainer : public MethodDataContainer
 	{	
-		//static tbb::mutex mutex;
-
-
-
-		void construct_and_merge_sets(std::multiset<Interval>&);
-
-		//void add_new_trial(problem_iterator, Trial);
-
-		void complete_iteration();
-
 		void add_problem(problem_iterator);
 
-		void parallel_perform_iteration(const std::multiset<Interval>&);
-
 		void parallel_perform_iteration();
-
-		
 
 		SimultaneousMethodDataContainer(const problem_list &in_problems)
 			: MethodDataContainer(in_problems)
@@ -442,8 +443,6 @@ private:
 
 		void add_new_trial(const std::pair<problem_iterator, Trial>&);
 
-		//void add_new_trial(problem_iterator, const Trial&);
-
 		void split_interval(const std::pair<Interval, Trial>&);
 
 		void update_segment_set();
@@ -451,15 +450,28 @@ private:
 
 	struct DynamicMethodDataContainer : public MethodDataContainer
 	{
-		void enqueue_problem(problem_iterator);
 		void init_workers(unsigned);
-		void perform_iteration();
+
 		void parallel_perform_iteration();
+
+
+		//Deprecated:
+
+		void perform_iteration();
+
 		void complete_iteration();
 
 		DynamicMethodDataContainer(const problem_list& in_problems)
-			: MethodDataContainer(in_problems) {}
+			: MethodDataContainer(in_problems)
+		{
+			enqueue_problems(in_problems);
+
+			init_workers(MethodData::input.num_threads);
+		}
 	private:
+
+		void enqueue_problems(const problem_list&);
+
 		void take_problem_from_queue();
 
 		std::list<std::reference_wrapper<MethodData>> active_solving_problems;

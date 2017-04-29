@@ -95,15 +95,17 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 
 	if (!selected_problem_no)
 	{
-		for (std::size_t i = 1; i <= series_size; i++)
+		for (unsigned int no = 1; no <= series_size; no++)
 		{
-			GklsFunction::GklsFunctionPtr gkls_function(new GklsFunction(GklsFunction::D2, i));
+			GklsFunction::GklsFunctionPtr gkls_function(
+				new GklsFunction(GklsFunction::D2, no));
 			problems.push_back(OptProblem::OptProblemPtr(new GklsProblem(gkls_function)));
 		}
 	}
 	else
 	{
-		GklsFunction::GklsFunctionPtr gkls_function(new GklsFunction(GklsFunction::D2, selected_problem_no));
+		GklsFunction::GklsFunctionPtr gkls_function(
+			new GklsFunction(GklsFunction::D2, selected_problem_no));
 		problems.push_back(OptProblem::OptProblemPtr(new GklsProblem(gkls_function)));
 	}
 	
