@@ -18,9 +18,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="funcs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="infrastructure.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,11 +45,11 @@
     <ClCompile Include="map\Y_to_x.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="vagris\funcs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="funcs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="hill.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -96,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="examin\problemPar.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vagris\funcs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

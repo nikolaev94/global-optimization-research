@@ -172,7 +172,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="funcs.cpp" />
     <ClCompile Include="gkls_problem.cpp" />
     <ClCompile Include="gkls\rnd_gen.cpp" />
     <ClCompile Include="gkls_function.cpp" />
@@ -182,12 +181,12 @@
     <ClCompile Include="map\X_to_y.cpp" />
     <ClCompile Include="map\Y_to_x.cpp" />
     <ClCompile Include="solver.cpp" />
+    <ClCompile Include="vagris\funcs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="examin\ConstrainedProblem.hpp" />
     <ClInclude Include="examin\ConstrainedProblemGenerator.hpp" />
     <ClInclude Include="examin\problemPar.hpp" />
-    <ClInclude Include="funcs.h" />
     <ClInclude Include="gkls_problem.h" />
     <ClInclude Include="gkls\gkls.h" />
     <ClInclude Include="gkls\rnd_gen.h" />
@@ -200,6 +199,7 @@
     <ClInclude Include="math_function.h" />
     <ClInclude Include="opt_problem.h" />
     <ClInclude Include="solver.h" />
+    <ClInclude Include="vagris\funcs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
