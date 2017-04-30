@@ -541,87 +541,6 @@ void Solver::MethodData::perform_iteration(MethodData &problem_data)
 }
 
 
-void Solver::MethodData::update_trial_subsets()
-{
-	this->update_method_parameters();
-
-	this->update_lower_lip_const();
-
-	this->calc_min_estimators();
-}
-
-
-void Solver::MethodData::update_lower_lip_const()
-{
-	/*
-	for (auto subset = subsets.begin(); subset != --subsets.end(); subset++)
-	{
-	subset->second.min_estimator = 0.0;
-	}
-
-	auto max_nu = subsets.rbegin();
-
-	max_nu->second.calc_subset_lower_lip_const();
-	*/
-	
-}
-
-
-void Solver::MethodData::update_method_parameters()
-{
-	for (auto& subset_index : subsets)
-	{
-		subset_index.second.method_parameter =
-			function_stats.at(subset_index.first).parameter;
-	}
-}
-
-
-
-// probably only update is needed!
-void Solver::MethodData::calc_min_estimators()
-{
-	for (auto& subset_index: subsets)
-	{
-		subset_index.second.calc_subset_min_estimate();
-
-		// subset_index.second.calc_subset_lower_lip_const();
-	}
-}
-
-
-
-
-
-void Solver::MethodData::add_trial(const Trial& another_trial)
-{
-	this->trials.insert(another_trial);
-
-	this->trials_count++;
-
-	this->update_stats(another_trial);
-
-	this->update_solution(another_trial);
-
-	this->add_trial_to_subset(another_trial);
-}
-
-
-void Solver::MethodData::construct_segment_set(std::multiset<Interval>& segments) const
-{
-	for (auto i = trials.begin(); i != --trials.end(); i++)
-	{
-		auto next = std::next(i);
-
-		Interval curr_segment(problem, *i, *next);
-
-		curr_segment.calc_characteristic(subsets);
-
-		segments.insert(curr_segment);
-	}
-}
-
-
 void Solver::MethodData::add_new_trial(const Trial& another_trial)
 {
 	if (method_finished)
@@ -808,8 +727,6 @@ void Solver::Interval::calc_characteristic(const trial_subsets& subsets)
 
 double Solver::Interval::get_interval_length()
 {
-	//OptProblem* opt_problem = problem->get();
-
 	unsigned problem_dim = (*problem)->getDimention();
 	double delta = 0.0;
 	if (problem_dim > 1)
@@ -840,8 +757,6 @@ double Solver::Interval::get_new_point() const
 	}
 	else
 	{
-		//OptProblem* opt_problem = problem->get();
-
 		unsigned problem_dim = (*problem)->getDimention();
 		if (problem_dim > 1)
 		{
@@ -1048,11 +963,20 @@ void Solver::DynamicMethodDataContainer::take_problem_from_queue()
 
 
 void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
-{
+{	
+	/*
+	for (auto & solving_problem : active_solving_problems)
+	{
+		++MethodData::global_trials_count;
+
+		MethodData::perform_iteration(solving_problem);
+	}
+	*/
 	tbb::parallel_do(active_solving_problems.begin(), active_solving_problems.end(),
 		[](std::reference_wrapper<MethodData> solving_problem_reference) -> void
 	{
 		++MethodData::global_trials_count;
+
 
 		MethodData::perform_iteration(solving_problem_reference);
 	});
@@ -1164,11 +1088,6 @@ void Solver::MethodDataContainer::dump_solving_results(
 		results.emplace_back(method_data_index.second);
 	}
 }
-
-
-
-
-
 
 
 Solver::problem_list::const_iterator Solver::ProblemIterator::problem_list_begin;

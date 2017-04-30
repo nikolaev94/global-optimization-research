@@ -17,7 +17,7 @@
 #include <tbb/task_scheduler_init.h>
 #include <tbb/tick_count.h>
 
-#include <mpi.h>
+//#include <mpi.h>
 
 //#include <mpi.h>
 
@@ -90,6 +90,7 @@ public:
 			: solved_problem(method_data.problem)
 		{
 			// this->iterations = method_data.iterations_count;
+
 			this->xmin = method_data.sln_estimator.xmin;
 			this->zmin = method_data.sln_estimator.zmin;
 			this->error = method_data.sln_estimator.error;
@@ -280,8 +281,6 @@ private:
 
 	struct MethodData
 	{
-		typedef std::vector<Interval>::iterator interval_iterator;
-
 		static Input input;
 		static unsigned global_iterations_count;
 		static tbb::atomic<unsigned> global_trials_count;
@@ -313,18 +312,11 @@ private:
 		void dump_solving_result(std::list<ProblemSolvingResult>& results);
 
 		void add_new_trial(const Trial&);
-
-		void add_trial(const Trial&);
-		void update_trial_subsets();
-
-		void construct_sorted_segment_set(
-			std::multiset<Interval, IntervalCharateristicCompartor>&) const;
-
-		void construct_segment_set(std::multiset<Interval>&) const;
-
+		
 		bool is_finished() const;
 
 		unsigned get_num_trials() const;
+
 		double get_error_value() const;
 
 		MethodData(const OptProblem::OptProblemPtr&);
@@ -363,18 +355,11 @@ private:
 
 		void sort_segment_set();
 
-
 		void split_best_interval(const Trial&);
 
 		void split_interval(const std::pair<Interval, Trial>&);
 
 		void calc_elapsed_time();
-
-
-		// DEPRECATED:
-		void update_method_parameters();
-		void update_lower_lip_const();
-		void calc_min_estimators();
 	};
 
 	struct ProblemIteratorHasher

@@ -16,14 +16,14 @@
 
 int main(int argc, char* argv[])
 {
-	MPI_Init(&argc, &argv);
+	//MPI_Init(&argc, &argv);
 
 	int rank = 0;
 	int size = 0;
 
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	//MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	//MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 
 	std::cout << "Rank: " << rank << std::endl;
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 
 	output.dump_solved_problem_portion_by_trials_to_file(prefix + "portions.csv");
 
-	MPI_Finalize();
+	//MPI_Finalize();
 	
 	/*
 	double xray[50], yray[50], zmat[50][50];
