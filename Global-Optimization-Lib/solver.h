@@ -140,8 +140,6 @@ private:
 		ProblemIterator(problem_iterator iterator) : problem_ptr(iterator) {}
 	};
 
-	
-
 	struct Trial
 	{
 		double x, z;
@@ -165,13 +163,12 @@ private:
 		 * Use only neighbour trials to calculate lower lip const
 		 * This optimization can be used only for one-function problems
 		 */
-
 		static bool USE_NEIGHBOUR_NODES;
 
 		std::set<Trial> subset;
 		double lip_const;
 		double min_estimator;
-		const size_t SUBSET_SIZE_LIMIT = 10;
+		const std::size_t SUBSET_SIZE_LIMIT = 10;
 
 		double method_parameter;
 
@@ -187,7 +184,6 @@ private:
 
 		bool update_subset_method_parameter(double in_parameter);
 
-		void calc_subset_lower_lip_const();
 		void calc_subset_min_estimate();
 	private:
 		double get_subset_lip_const_lower_estimation(const Trial&);
@@ -195,17 +191,10 @@ private:
 		double calc_max_difference_between_neighbours(const Trial&);
 		double calc_max_difference_between_all_trials(const Trial&);
 		double calc_relative_difference_between_nodes(const Trial&, const Trial&);
-
-		double get_subset_max_difference();
-
-		double calc_max_difference_neighbours_1();
-		double calc_max_difference_all_trials();
 	};
-
 
 	typedef std::map< unsigned, TrialSubset > trial_subsets;
 	
-
 	struct Interval
 	{
 		problem_iterator problem;
@@ -215,18 +204,27 @@ private:
 		double greater_nu_lipconst;
 		double greater_nu_method_param;
 
+		void calc_characteristic(const trial_subsets&);
+
+		Trial create_new_trial() const;
+
 		Interval() = delete;
 		Interval(problem_iterator _problem) : problem(_problem) {}
-		Interval(problem_iterator _problem, const Trial& _left_node, const Trial& _right_node)
-			: problem(_problem), left_node(_left_node), right_node(_right_node) {}
+		Interval(problem_iterator in_problem, const Trial& in_left_node,
+			const Trial& in_right_node)
+			: problem(in_problem), left_node(in_left_node), right_node(in_right_node) {}
 
 		// By default, compare intervals by charateristics
-		bool operator< (const Interval& interval) const { return this->charact > interval.charact; }
-		bool operator== (const Interval& interval) const { return this->right_node.x == interval.right_node.x; }
+		bool operator< (const Interval& interval) const
+		{
+			return this->charact > interval.charact;
+		}
 
-		void calc_characteristic(const trial_subsets&);
-		
-		Trial create_new_trial() const;
+		bool operator== (const Interval& interval) const
+		{
+			return this->right_node.x == interval.right_node.x;
+		}
+
 	private:
 		double sgn(double arg) const;
 		double get_new_point() const;
@@ -311,7 +309,6 @@ private:
 		void merge_segment_set_into(std::list<Interval>&);
 
 		void parallel_perform_iteration();
-
 		
 		void dump_solving_result(std::list<ProblemSolvingResult>& results);
 
@@ -364,10 +361,6 @@ private:
 
 		Trial get_new_trial();
 
-
-
-		//void update_interval();
-
 		void sort_segment_set();
 
 
@@ -409,10 +402,9 @@ private:
 
 	private:
 		void add_problem(problem_iterator);
+
 	protected:
 		std::map<ProblemIterator, MethodData> problem_series_container;
-
-		
 
 		void update_errors(errors_vector&);
 		void update_portion(portion_vector&);
@@ -452,13 +444,6 @@ private:
 		void init_workers(unsigned);
 
 		void parallel_perform_iteration();
-
-
-		//Deprecated:
-
-		void perform_iteration();
-
-		void complete_iteration();
 
 		DynamicMethodDataContainer(const problem_list& in_problems)
 			: MethodDataContainer(in_problems)

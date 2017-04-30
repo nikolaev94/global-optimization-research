@@ -81,21 +81,20 @@ void Solver::Output::add_problem_solving_result(const MethodData &solved_problem
 
 void Solver::init_tbb(int number_threads)
 {
-	this->scheduler.initialize(number_threads);
+	scheduler.initialize(number_threads);
 }
 
 
 void Solver::Trial::perform_trial(problem_iterator problem)
 {
-	//OptProblem* opt_problem = problem->get();
-
-	for (size_t i = 0; i < (*problem)->getConstraintsNumber(); i++)
+	for (size_t constraint_no = 0;
+		constraint_no < (*problem)->getConstraintsNumber(); constraint_no++)
 	{
-		double func_value = (*problem)->getContraintValue(i, x);
+		double func_value = (*problem)->getContraintValue(constraint_no, x);
 		if (func_value > 0)
 		{
 			this->z = func_value;
-			this->nu = i + 1;
+			this->nu = constraint_no + 1;
 			this->admissible = false;
 			return;
 		}
@@ -119,61 +118,6 @@ void Solver::TrialSubset::calc_subset_min_estimate()
 		}
 	}
 	min_estimator = zmin;
-}
-
-
-double Solver::TrialSubset::get_subset_max_difference()
-{
-	if (TrialSubset::USE_NEIGHBOUR_NODES && subset.size() > SUBSET_SIZE_LIMIT)
-	{
-		return calc_max_difference_neighbours_1();
-	}
-	else
-	{
-		return calc_max_difference_all_trials();
-	}
-}
-
-
-double Solver::TrialSubset::calc_max_difference_all_trials()
-{
-	double maxDiff = 0.0;
-
-	for (auto i = this->subset.begin(); i != --this->subset.end(); i++)
-	{
-		for (auto j = std::next(i); j != this->subset.end(); j++)
-		{
-			if (fabs(j->z - i->z) / (j->x - i->x) > maxDiff)
-			{
-				maxDiff = fabs(j->z - i->z) / (j->x - i->x);
-			}
-
-		}
-	}
-	if (maxDiff < DBL_EPSILON)
-	{
-		maxDiff = 1.0;
-	}
-	return maxDiff;
-}
-
-
-double Solver::TrialSubset::calc_max_difference_neighbours_1()
-{
-	double maxDiff = 0.0;
-	for (auto subset = this->subset.begin(); subset != --this->subset.end(); subset++)
-	{
-		auto j = std::next(subset);
-		if (fabs(j->z - subset->z) / (j->x - subset->x) > maxDiff)
-		{
-			maxDiff = fabs(j->z - subset->z) / (j->x - subset->x);
-		}
-	}
-	if (maxDiff < DBL_EPSILON)
-	{
-		maxDiff = 1.0;
-	}
-	return maxDiff;
 }
 
 
@@ -236,19 +180,6 @@ double Solver::TrialSubset::calc_max_difference_between_all_trials(const Trial& 
 	}
 
 	return maxDiff;
-}
-
-
-void Solver::TrialSubset::calc_subset_lower_lip_const()
-{
-	if (this->subset.size() < 2)
-	{
-		this->lip_const = 1.0;
-	}
-	else
-	{
-		this->lip_const = this->get_subset_max_difference();
-	}
 }
 
 
@@ -379,7 +310,6 @@ void Solver::get_trial_subsets_by_index(const std::set<Trial>& trials, trial_sub
 
 
 double Solver::FunctionStatsInfo::initial_parameter = 10.0;
-
 
 void Solver::FunctionStatsInfo::update()
 {
@@ -956,14 +886,18 @@ double Solver::Interval::sgn(double arg) const
 }
 
 
+
+
 void Solver::SimultaneousMethodDataContainer::sort_segment_set()
 {
 	all_segments.sort();
 }
 
+
 void Solver::SimultaneousMethodDataContainer::add_new_trial(const std::pair<problem_iterator, Trial>& new_trial_data)
 {
-	auto target_problem_data = problem_series_container.find(ProblemIterator(new_trial_data.first));
+	auto target_problem_data = problem_series_container.find(
+		ProblemIterator(new_trial_data.first));
 
 	target_problem_data->second.add_new_trial(new_trial_data.second);
 }
@@ -1077,6 +1011,72 @@ void Solver::SimultaneousMethodDataContainer::add_problem(problem_iterator probl
 }
 
 
+void Solver::DynamicMethodDataContainer::enqueue_problems(
+	const problem_list& problems_to_solve)
+{
+	for (auto iterator = problems_to_solve.cbegin();
+		iterator != problems_to_solve.cend(); ++iterator)
+	{
+		problem_queue.push(iterator);
+	}
+}
+
+
+void Solver::DynamicMethodDataContainer::init_workers(unsigned int num_threads)
+{
+	for (unsigned int i = 0; i < num_threads; i++)
+	{
+		take_problem_from_queue();
+	}
+}
+
+
+void Solver::DynamicMethodDataContainer::take_problem_from_queue()
+{
+	if (!problem_queue.empty())
+	{
+		auto another_problem_to_solve = problem_queue.front();
+
+		problem_queue.pop();
+
+		auto target_problem_data =
+			problem_series_container.find(ProblemIterator(another_problem_to_solve));
+
+		active_solving_problems.push_front(std::ref(target_problem_data->second));
+	}
+}
+
+
+void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
+{
+	tbb::parallel_do(active_solving_problems.begin(), active_solving_problems.end(),
+		[](std::reference_wrapper<MethodData> solving_problem_reference) -> void
+	{
+		++MethodData::global_trials_count;
+		MethodData::perform_iteration(solving_problem_reference);
+	});
+
+	++MethodData::global_iterations_count;
+
+	for (auto ref_iterator = active_solving_problems.begin();
+		ref_iterator != active_solving_problems.end();)
+	{
+		auto& solving_problem = (*ref_iterator).get();
+
+		if (solving_problem.is_finished())
+		{
+			ref_iterator = active_solving_problems.erase(ref_iterator);
+
+			take_problem_from_queue();
+		}
+		else
+		{
+			++ref_iterator;
+		}
+	}
+}
+
+
 
 
 void Solver::MethodDataContainer::update_metrics(MetricsContainer& metrics)
@@ -1103,16 +1103,14 @@ void Solver::MethodDataContainer::update_portion(portion_vector& solved_problems
 	solved_problems_portion.emplace_back(MethodData::global_trials_count, portion);
 }
 
+
 void Solver::MethodDataContainer::update_errors(errors_vector& errors_by_trials)
 {
 	double average_error = 0.0;
 	double max_error = -(DBL_MAX);
 
-	// unsigned num_trials = 0;
 	for (const auto& method_data_index : problem_series_container)
 	{
-		// num_trials += method_data_index.second.get_num_trials();
-
 		double method_error = method_data_index.second.get_error_value();
 
 		average_error += method_error;
@@ -1149,7 +1147,6 @@ Solver::MetricsContainer::MetricsContainer(Input input)
 }
 
 
-
 void Solver::MethodDataContainer::add_problem(problem_iterator problem)
 {
 	problem_series_container.emplace(problem, problem);
@@ -1166,123 +1163,10 @@ void Solver::MethodDataContainer::dump_solving_results(
 }
 
 
-void Solver::DynamicMethodDataContainer::enqueue_problems(
-	const problem_list& problems_to_solve)
-{
-	for (auto iterator = problems_to_solve.cbegin();
-		iterator != problems_to_solve.cend(); ++iterator)
-	{
-		problem_queue.push(iterator);
-	}
-}
-
-void Solver::DynamicMethodDataContainer::init_workers(unsigned int num_threads)
-{
-	for (unsigned int i = 0; i < num_threads; i++)
-	{
-		take_problem_from_queue();
-	}
-}
-
-
-void Solver::DynamicMethodDataContainer::take_problem_from_queue()
-{
-	if (!problem_queue.empty())
-	{
-		auto another_problem_to_solve = problem_queue.front();
-
-		problem_queue.pop();
-
-		auto target_problem_data =
-			problem_series_container.find(ProblemIterator(another_problem_to_solve));
-
-		active_solving_problems.push_front(std::ref(target_problem_data->second));
-	}
-}
-
-void Solver::DynamicMethodDataContainer::perform_iteration()
-{
-	for (auto solving_problem_reference : this->active_solving_problems)
-	{
-		auto& solving_problem = solving_problem_reference.get();
-
-		std::multiset<Interval> interval_set;
-		solving_problem.construct_segment_set(interval_set);
-		auto best_segment = interval_set.begin();
-		Trial another_trial = best_segment->create_new_trial();
-
-		/*
-		 * Updating global trial counter
-		 */
-		MethodData::global_trials_count++;
-
-		solving_problem.add_trial(another_trial);
-	}
-}
-
-
-void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
-{
-	tbb::parallel_do(active_solving_problems.begin(), active_solving_problems.end(),
-		[](std::reference_wrapper<MethodData> solving_problem_reference) -> void
-	{
-		++MethodData::global_trials_count;
-		MethodData::perform_iteration(solving_problem_reference);
-	});
-
-	++MethodData::global_iterations_count;
-
-	for (auto ref_iterator = active_solving_problems.begin();
-		ref_iterator != active_solving_problems.end();)
-	{
-		auto& solving_problem = (*ref_iterator).get();
-
-		if (solving_problem.is_finished())
-		{
-			ref_iterator = active_solving_problems.erase(ref_iterator);
-
-			take_problem_from_queue();
-		}
-		else
-		{
-			++ref_iterator;
-		}
-	}
 
 
 
-}
 
-void Solver::DynamicMethodDataContainer::complete_iteration()
-{
-	MethodData::global_iterations_count++;
-
-	/*
-	 * note: there is no increment in the loop construct
-	 */
-	for (auto ref_iterator = active_solving_problems.begin();
-		ref_iterator != active_solving_problems.end();)
-	{
-		auto& solving_problem = (*ref_iterator).get();
-		if (solving_problem.is_finished())
-		{
-			/*
-			 * removing problem from active list
-			 */
-			ref_iterator = active_solving_problems.erase(ref_iterator);
-			/*
-			 * take another one
-			 */
-			take_problem_from_queue();
-		}
-		else
-		{
-			solving_problem.update_trial_subsets();
-
-			++ref_iterator;
-		}
-	}
-}
 
 Solver::problem_list::const_iterator Solver::ProblemIterator::problem_list_begin;
 
@@ -1361,6 +1245,7 @@ void Solver::run_sequential_search(Output& out)
 }
 
 void Solver::run_solver(Output& out) {
+
 	Solver::ProblemIterator::problem_list_begin = problems.begin();
 
 	Solver::MethodData::set_method_input(input);
@@ -1380,4 +1265,3 @@ void Solver::run_solver(Output& out) {
 		break;
 	}
 }
-
