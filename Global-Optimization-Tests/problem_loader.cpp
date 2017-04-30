@@ -112,12 +112,29 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 }
 
 
-void ProblemLoader::load_vagris_series(Solver::problem_list& problems)
+void ProblemLoader::load_vagris_series(const UserParameters& user_parameters,
+	Solver::problem_list& problems)
 {
-	for (size_t i = 1; i <= 100; i++)
+	auto series_size = user_parameters.get_series_size();
+
+	auto selected_problem_no = user_parameters.get_selected_problem_no();
+
+	if (!selected_problem_no)
 	{
-		GrishaginFunction::GrishaginFunctionPtr vagris_function(new GrishaginFunction(i));
-		problems.push_back(OptProblem::OptProblemPtr(new GrishaginProblem(vagris_function)));
+		for (unsigned int no = 1; no <= series_size; no++)
+		{
+			GrishaginFunction::GrishaginFunctionPtr vagris_function(
+				new GrishaginFunction(no));
+			problems.push_back(OptProblem::OptProblemPtr(
+				new GrishaginProblem(vagris_function)));
+		}
+	}
+	else
+	{
+		GrishaginFunction::GrishaginFunctionPtr vagris_function(
+			new GrishaginFunction(selected_problem_no));
+		problems.push_back(OptProblem::OptProblemPtr(
+			new GrishaginProblem(vagris_function)));
 	}
 }
 
@@ -180,7 +197,7 @@ void ProblemLoader::load_series(const UserParameters& user_parameters,
 		print_GKLS_class_parameters();
 		break;
 	case FunctionClass::VAGRIS:
-		load_vagris_series(problems);
+		load_vagris_series(user_parameters, problems);
 		break;
 	default:
 		break;

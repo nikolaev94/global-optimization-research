@@ -24,7 +24,7 @@ private:
 	void print_GKLS_class_parameters();
 
 	void load_GKLS_series(const UserParameters&, Solver::problem_list&);
-	void load_vagris_series(Solver::problem_list&);
+	void load_vagris_series(const UserParameters&, Solver::problem_list&);
 public:
 	ProblemLoader();
 	~ProblemLoader();

@@ -87,10 +87,11 @@ void Solver::init_tbb(int number_threads)
 
 void Solver::Trial::perform_trial(problem_iterator problem)
 {
-	OptProblem* opt_problem = problem->get();
-	for (size_t i = 0; i < opt_problem->getConstraintsNumber(); i++)
+	//OptProblem* opt_problem = problem->get();
+
+	for (size_t i = 0; i < (*problem)->getConstraintsNumber(); i++)
 	{
-		double func_value = opt_problem->getContraintValue(i, this->x);
+		double func_value = (*problem)->getContraintValue(i, x);
 		if (func_value > 0)
 		{
 			this->z = func_value;
@@ -99,12 +100,12 @@ void Solver::Trial::perform_trial(problem_iterator problem)
 			return;
 		}
 	}
-	this->z = opt_problem->getObjectiveValue(this->x);
-	this->nu = opt_problem->getConstraintsNumber() + 1;
+	this->z = (*problem)->getObjectiveValue(this->x);
+	this->nu = (*problem)->getConstraintsNumber() + 1;
 	this->admissible = true;
 }
 
-bool Solver::TrialSubset::USE_NEIGHBOUR_NODES = true;
+bool Solver::TrialSubset::USE_NEIGHBOUR_NODES = true; ///false; // 
 
 void Solver::TrialSubset::calc_subset_min_estimate()
 {
@@ -123,7 +124,7 @@ void Solver::TrialSubset::calc_subset_min_estimate()
 
 double Solver::TrialSubset::get_subset_max_difference()
 {
-	if (TrialSubset::USE_NEIGHBOUR_NODES && this->subset.size() > this->SUBSET_SIZE_LIMIT)
+	if (TrialSubset::USE_NEIGHBOUR_NODES && subset.size() > SUBSET_SIZE_LIMIT)
 	{
 		return calc_max_difference_neighbours_1();
 	}
@@ -267,6 +268,10 @@ double Solver::TrialSubset::get_subset_lip_const_lower_estimation(const Trial& a
 			{
 				maxDiff = calc_max_difference_between_neighbours(another_trial);
 			}
+			else
+			{
+				maxDiff = calc_max_difference_between_all_trials(another_trial);
+			}
 		}
 		else
 		{
@@ -285,7 +290,8 @@ double Solver::TrialSubset::get_subset_lip_const_lower_estimation(const Trial& a
 
 bool Solver::TrialSubset::update_subset_lip_const_lower_estimation(const Trial& another_trial)
 {
-	double new_lip_const = get_subset_lip_const_lower_estimation(another_trial);
+	double new_lip_const =
+		get_subset_lip_const_lower_estimation(another_trial);
 
 	if (new_lip_const > lip_const)
 	{
@@ -440,10 +446,10 @@ Solver::MethodData::MethodData(problem_iterator _problem) : problem(_problem)
 
 void Solver::MethodData::init_function_stats()
 {
-	OptProblem* opt_problem = this->problem->get();
-	for (size_t i = 0; i <= opt_problem->getConstraintsNumber() + 1; i++)
+	for (std::size_t constraint_no = 0;
+		constraint_no <= (*problem)->getConstraintsNumber() + 1; constraint_no++)
 	{
-		this->function_stats.emplace(i, this->input.method_param);
+		function_stats.emplace(constraint_no, input.method_param);
 	}
 }
 
@@ -546,7 +552,6 @@ void Solver::MethodData::update_solution(const Trial& another_trial)
 {
 	if (another_trial.admissible)
 	{
-		//OptProblem* opt_problem = this->problem->get();
 		double error = (*problem)->getReferenceMinError(another_trial.x);
 
 		if (error < sln_estimator.error)
@@ -594,8 +599,6 @@ void Solver::MethodData::perform_iteration(MethodData &problem_data)
 	problem_data.sort_segment_set();
 
 	Trial another_trial = problem_data.get_new_trial();
-
-	++MethodData::global_trials_count;
 
 	problem_data.add_new_trial(another_trial);
 
@@ -807,7 +810,7 @@ void Solver::MethodData::parallel_perform_iteration()
 	for (const auto &trial_to_process : new_trials)
 	{
 		auto target_interval_position = std::find(segment_set.begin(),
-			segment_set.end(), trial_to_process.first);
+			segments_end, trial_to_process.first);
 
 		segment_set.erase(target_interval_position);
 
@@ -1199,27 +1202,6 @@ void Solver::DynamicMethodDataContainer::take_problem_from_queue()
 
 void Solver::DynamicMethodDataContainer::perform_iteration()
 {
-	/*
-	cilk::reducer<cilk::op_add<unsigned>> trials_sum(0);
-
-	cilk_for(auto solving_problem_reference : this->active_solving_problems)
-	{
-		auto& solving_problem = solving_problem_reference.get();
-
-		std::multiset<Interval> interval_set;
-		solving_problem.construct_segment_set(interval_set);
-		auto best_segment = interval_set.begin();
-		Trial another_trial = best_segment->create_new_trial();
-
-		/*
-		* Updating global trial counter
-		
-		MethodData::global_trials_count++;
-
-		solving_problem.add_trial(another_trial);
-	}
-	*/
-
 	for (auto solving_problem_reference : this->active_solving_problems)
 	{
 		auto& solving_problem = solving_problem_reference.get();
@@ -1244,6 +1226,7 @@ void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
 	tbb::parallel_do(active_solving_problems.begin(), active_solving_problems.end(),
 		[](std::reference_wrapper<MethodData> solving_problem_reference) -> void
 	{
+		++MethodData::global_trials_count;
 		MethodData::perform_iteration(solving_problem_reference);
 	});
 
@@ -1273,8 +1256,6 @@ void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
 void Solver::DynamicMethodDataContainer::complete_iteration()
 {
 	MethodData::global_iterations_count++;
-
-
 
 	/*
 	 * note: there is no increment in the loop construct

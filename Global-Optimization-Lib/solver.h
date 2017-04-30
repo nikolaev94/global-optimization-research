@@ -57,11 +57,12 @@ public:
 			left(0.0), right(1.0), method_eps(1.e-3), method_param(3.0),
 			num_threads(1), solving_method(SolvingMethod::SEQUENTIAL) {}
 
-		Input(double _left, double _right, double _method_eps,
-			double _method_param, unsigned int _num_threads,
-			SolvingMethod _solving_method = SolvingMethod::SEQUENTIAL) :
-			left(_left), right(_right), method_eps(_method_eps), method_param(_method_param),
-			num_threads(_num_threads), solving_method(_solving_method) {}
+		Input(double in_left, double in_right, double in_method_eps,
+			double in_method_param, unsigned int in_num_threads,
+			SolvingMethod in_solving_method = SolvingMethod::SEQUENTIAL) :
+			left(in_left), right(in_right), method_eps(in_method_eps),
+			method_param(in_method_param),
+			num_threads(in_num_threads), solving_method(in_solving_method) {}
 	};
 
 	struct ProblemSolvingResult
@@ -290,7 +291,6 @@ private:
 		static void set_method_input(const Input&);
 
 		static void perform_iteration(MethodData&);
-		// unsigned iterations_count = 0;
 		// bool operator==(const MethodData&) const;
 
 		unsigned trials_count = 0;
@@ -312,7 +312,6 @@ private:
 
 		void parallel_perform_iteration();
 
-		
 		
 		void dump_solving_result(std::list<ProblemSolvingResult>& results);
 
