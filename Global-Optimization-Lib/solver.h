@@ -355,13 +355,11 @@ private:
 
 	struct MethodDataKey
 	{
-		//static problem_iterator problem_list_begin;
-
 		problem_iterator problem;
 
-		//bool operator<(const MethodDataKey& cmp) const;
-
 		bool operator==(const MethodDataKey& cmp) const;
+
+		MethodDataKey() = delete;
 
 		MethodDataKey(problem_iterator in_problem) : problem(in_problem) {}
 	};
@@ -394,14 +392,12 @@ private:
 		void add_problem(problem_iterator);
 
 	protected:
-		//std::map<ProblemIterator, MethodData> problem_series_container;
-
 		std::unordered_map<MethodDataKey, MethodData, MethodDataKeyHasher> problem_series_container;
+
+		std::vector<problem_iterator> problem_order_in_series;
 
 		void update_errors(errors_vector&);
 		void update_portion(portion_vector&);
-
-		//std::unordered_map<problem_iterator, MethodData, ProblemIteratorHasher>
 	};
 
 

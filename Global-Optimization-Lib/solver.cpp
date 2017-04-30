@@ -599,16 +599,19 @@ void Solver::MethodData::update_solution(const Trial& another_trial)
 
 		if (error < sln_estimator.error)
 		{
-			this->sln_estimator.error = error;
-			this->sln_estimator.xmin = another_trial.x;
-			this->sln_estimator.zmin = another_trial.z;
-
-			if (error < input.method_eps)
+			//if (another_trial.z < sln_estimator.zmin)
 			{
-				calc_elapsed_time();
-				this->total_trials_count = MethodData::global_trials_count;
-				this->total_iterations_count = MethodData::global_iterations_count;
-				this->method_finished = true;
+				this->sln_estimator.error = error;
+				this->sln_estimator.xmin = another_trial.x;
+				this->sln_estimator.zmin = another_trial.z;
+
+				if (error < input.method_eps)
+				{
+					calc_elapsed_time();
+					this->total_trials_count = MethodData::global_trials_count;
+					this->total_iterations_count = MethodData::global_iterations_count;
+					this->method_finished = true;
+				}
 			}
 		}
 	}
@@ -895,15 +898,19 @@ void Solver::MethodDataContainer::add_problem(problem_iterator problem)
 	// problem_series_container.emplace(problem, problem);
 
 	problem_series_container.emplace(problem, problem);
+
+	problem_order_in_series.push_back(problem);
 }
 
 
 void Solver::MethodDataContainer::dump_solving_results(
 	std::list<ProblemSolvingResult>& results)
 {
-	for (const auto& method_data_index : problem_series_container)
+	for (auto problem_iterator : problem_order_in_series)
 	{
-		results.emplace_back(method_data_index.second);
+		auto target_data = problem_series_container.find(MethodDataKey(problem_iterator));
+
+		results.emplace_back(target_data->second);
 	}
 }
 
@@ -1188,10 +1195,8 @@ void Solver::run_sequential_search(Output& out)
 	out.elapsed_time = (finish_time - start_time).seconds();
 }
 
-void Solver::run_solver(Output& out) {
-
-	//Solver::MethodDataKey::problem_list_begin = problems.begin();
-
+void Solver::run_solver(Output& out)
+{
 	Solver::MethodData::set_method_input(input);
 
 	switch (input.solving_method)
