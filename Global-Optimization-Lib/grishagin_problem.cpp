@@ -122,7 +122,8 @@ double GrishaginProblem::getReferenceMinError(double scalar)
 	double trial_point[2];
 	GrishaginFunction::mapScalar_To_2DSpace(scalar, trial_point);
 
-	int number = this->objective->getFunctionSequentialNumber();
+	int number = objective->getFunctionSequentialNumber();
+
 	double min_point[] = { rand_minimums[number * 2 - 2], rand_minimums[number * 2 - 1] };
 
 	return getDistance(trial_point, min_point);
@@ -136,7 +137,7 @@ unsigned GrishaginProblem::getDimention()
 
 double GrishaginProblem::getObjectiveValue(double arg) const
 {
-	return this->objective->getValue(arg);
+	return objective->getValue(arg);
 }
 
 

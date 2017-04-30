@@ -17,6 +17,7 @@ unsigned char GrishaginFunction::matcon[10][45] = {
 void GrishaginFunction::mapScalar_To_2DSpace(double x, double point[DIMENSION])
 {
 	mapd(x, PRECISION, point, DIMENSION, KEY);
+
 	linear_transform(point);
 }
 
@@ -27,9 +28,10 @@ void GrishaginFunction::linear_transform(double point[DIMENSION]) {
 	}
 }
 
-GrishaginFunction::GrishaginFunction(int _sequential_number) : MathFunction()
+GrishaginFunction::GrishaginFunction(int in_sequential_number) : MathFunction()
 {
-	this->sequential_number = _sequential_number;
+	sequential_number = in_sequential_number;
+
 	set_random(sequential_number);
 }
 
@@ -146,12 +148,15 @@ double GrishaginFunction::random_func(double* y, int n)
 double GrishaginFunction::getValue(double arg)
 {
 	double point[2];
+
 	mapd(arg, PRECISION, point, DIMENSION, KEY);
+
 	linear_transform(point);
+
 	return random_func(point, DIMENSION);
 }
 
 int GrishaginFunction::getFunctionSequentialNumber()
 {
-	return this->sequential_number;
+	return sequential_number;
 }
