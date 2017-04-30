@@ -33,10 +33,10 @@ void Solver::Output::dump_results_to_file(const std::string& filename)
 		<< "Number of workers" << ';' << "Total trials" << ';'
 		<< "Total iterations" << ';' << "Elapsed time" << ';' << std::endl;
 
-	ofstream << this->original_input.method_eps << ';' << this->original_input.method_param << ';'
-		<< this->original_input.num_threads << ';'
+	ofstream << original_input.method_eps << ';' << original_input.method_param << ';'
+		<< original_input.num_threads << ';'
 		<< MethodData::global_trials_count << ';'
-		<< MethodData::global_iterations_count << ';' << this->elapsed_time << ';' << std::endl;
+		<< MethodData::global_iterations_count << ';' << elapsed_time << ';' << std::endl;
 
 	ofstream.close();
 }
@@ -976,7 +976,7 @@ void Solver::SimultaneousMethodDataContainer::parallel_perform_iteration()
 	for (const auto &trial_to_process : new_trials)
 	{
 		auto target_interval_position = std::find(all_segments.begin(),
-			all_segments.end(), trial_to_process.first);
+			segments_end, trial_to_process.first);
 
 		all_segments.erase(target_interval_position);
 
@@ -1053,9 +1053,14 @@ void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
 		[](std::reference_wrapper<MethodData> solving_problem_reference) -> void
 	{
 		++MethodData::global_trials_count;
+
 		MethodData::perform_iteration(solving_problem_reference);
 	});
+}
 
+
+void Solver::DynamicMethodDataContainer::complete_iteration()
+{
 	++MethodData::global_iterations_count;
 
 	for (auto ref_iterator = active_solving_problems.begin();
@@ -1075,8 +1080,6 @@ void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
 		}
 	}
 }
-
-
 
 
 void Solver::MethodDataContainer::update_metrics(MetricsContainer& metrics)
@@ -1191,6 +1194,7 @@ void Solver::run_simultaneous_search(Output& out)
 		problems_method_data.parallel_perform_iteration();
 
 		problems_method_data.update_metrics(out.metrics);
+
 	} while (!problems_method_data.is_all_finished());
 
 	finish_time = tbb::tick_count::now();
@@ -1213,6 +1217,9 @@ void Solver::run_dynamic_search(Output& out)
 		problems_method_data.parallel_perform_iteration();
 
 		problems_method_data.update_metrics(out.metrics);
+
+		problems_method_data.complete_iteration();
+
 	} while (!problems_method_data.is_all_finished());
 
 	finish_time = tbb::tick_count::now();

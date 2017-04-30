@@ -441,9 +441,9 @@ private:
 
 	struct DynamicMethodDataContainer : public MethodDataContainer
 	{
-		void init_workers(unsigned);
-
 		void parallel_perform_iteration();
+
+		void complete_iteration();
 
 		DynamicMethodDataContainer(const problem_list& in_problems)
 			: MethodDataContainer(in_problems)
@@ -453,6 +453,8 @@ private:
 			init_workers(MethodData::input.num_threads);
 		}
 	private:
+
+		void init_workers(unsigned);
 
 		void enqueue_problems(const problem_list&);
 
