@@ -329,10 +329,7 @@ size_t Solver::MethodDataHasher::operator()(const MethodData& method_data) const
 */
 
 
-size_t Solver::ProblemIteratorHasher::operator() (const problem_iterator& iterator) const
-{
-	return (size_t)&(*iterator);
-}
+
 
 /*
 bool Solver::MethodData::operator==(const MethodData& cmp) const
@@ -347,6 +344,122 @@ size_t Solver::MethodData::hash() const
 return this->problem_number;
 }
 */
+
+
+void Solver::Interval::calc_characteristic(const trial_subsets& subsets)
+{
+	double delta = this->get_interval_length();
+	if (this->left_node.nu == this->right_node.nu)
+	{
+		double min_estimate_nu = subsets.at(this->left_node.nu).min_estimator;
+
+		this->greater_nu_method_param = subsets.at(this->left_node.nu).method_parameter;
+		this->greater_nu_lipconst = subsets.at(this->left_node.nu).lip_const;
+
+		this->charact = delta + pow(this->right_node.z - this->left_node.z, 2.0)
+			/ (pow(this->greater_nu_method_param, 2.0) * pow(this->greater_nu_lipconst, 2.0) * delta)
+			- 2.0 * (this->right_node.x + this->left_node.x - 2.0 * min_estimate_nu)
+			/ (this->greater_nu_method_param * this->greater_nu_lipconst);
+	}
+	else if (this->right_node.nu > this->left_node.nu)
+	{
+		double min_estimate_nu = subsets.at(this->right_node.nu).min_estimator;
+
+		this->greater_nu_lipconst = subsets.at(this->right_node.nu).lip_const;
+		this->greater_nu_method_param = subsets.at(this->right_node.nu).method_parameter;
+
+		this->charact = 2.0 * delta - 4.0 * (this->right_node.z - min_estimate_nu)
+			/ (this->greater_nu_method_param * this->greater_nu_lipconst);
+	}
+	else
+	{
+		double min_estimate_nu = subsets.at(this->left_node.nu).min_estimator;
+
+		this->greater_nu_lipconst = subsets.at(this->left_node.nu).lip_const;
+		this->greater_nu_method_param = subsets.at(this->left_node.nu).method_parameter;
+
+		this->charact = 2.0 * delta - 4.0 * (this->left_node.z - min_estimate_nu)
+			/ (this->greater_nu_method_param * this->greater_nu_lipconst);
+	}
+}
+
+
+double Solver::Interval::get_interval_length()
+{
+	unsigned problem_dim = (*problem)->getDimention();
+	double delta = 0.0;
+	if (problem_dim > 1)
+	{
+		if (problem_dim == 2)
+		{
+			delta = sqrt(fabs(right_node.x - left_node.x));
+		}
+		else
+		{
+			delta = pow(fabs(right_node.x - left_node.x), 1.0 / problem_dim);
+		}
+	}
+	else
+	{
+		delta = fabs(right_node.x - left_node.x);
+	}
+	return delta;
+}
+
+
+double Solver::Interval::get_new_point() const
+{
+	double x = 0.0;
+	if (right_node.nu != left_node.nu)
+	{
+		x = (right_node.x + left_node.x) / 2.0;
+	}
+	else
+	{
+		unsigned problem_dim = (*problem)->getDimention();
+		if (problem_dim > 1)
+		{
+			x = (right_node.x + left_node.x) / 2.0 - sgn(right_node.z - left_node.z)
+				* pow(fabs(right_node.z - left_node.z) / greater_nu_lipconst, 1.0 * problem_dim)
+				/ (2.0 * greater_nu_method_param);
+		}
+		else
+		{
+			x = (right_node.x + left_node.x) / 2.0
+				- (right_node.z - left_node.z) / (2.0 * greater_nu_lipconst * greater_nu_method_param);
+		}
+	}
+	return x;
+}
+
+
+Solver::Trial Solver::Interval::create_new_trial() const
+{
+	Trial another_trial(get_new_point());
+
+	another_trial.perform_trial(problem);
+
+	return another_trial;
+}
+
+
+double Solver::Interval::sgn(double arg) const
+{
+	if (arg < DBL_EPSILON && arg > -(DBL_EPSILON))
+	{
+		return 0.0;
+	}
+	if (arg > 0.0)
+	{
+		return 1.0;
+	}
+	else
+	{
+		return -1.0;
+	}
+}
+
+
 
 
 Solver::MethodData::MethodData(problem_iterator _problem) : problem(_problem)
@@ -685,122 +798,114 @@ void Solver::MethodData::calc_elapsed_time()
 	elapsed_time_in_seconds = (tbb::tick_count::now() - starting_stamp).seconds();
 }
 
-
-
-void Solver::Interval::calc_characteristic(const trial_subsets& subsets)
+std::size_t Solver::MethodDataKeyHasher::operator() (const MethodDataKey& method_data) const
 {
-	double delta = this->get_interval_length();
-	if (this->left_node.nu == this->right_node.nu)
-	{
-		double min_estimate_nu = subsets.at(this->left_node.nu).min_estimator;
-
-		this->greater_nu_method_param = subsets.at(this->left_node.nu).method_parameter;
-		this->greater_nu_lipconst = subsets.at(this->left_node.nu).lip_const;
-
-		this->charact = delta + pow(this->right_node.z - this->left_node.z, 2.0)
-			/ (pow(this->greater_nu_method_param, 2.0) * pow(this->greater_nu_lipconst, 2.0) * delta)
-			- 2.0 * (this->right_node.x + this->left_node.x - 2.0 * min_estimate_nu)
-			/ (this->greater_nu_method_param * this->greater_nu_lipconst);
-	}
-	else if (this->right_node.nu > this->left_node.nu)
-	{
-		double min_estimate_nu = subsets.at(this->right_node.nu).min_estimator;
-
-		this->greater_nu_lipconst = subsets.at(this->right_node.nu).lip_const;
-		this->greater_nu_method_param = subsets.at(this->right_node.nu).method_parameter;
-
-		this->charact = 2.0 * delta - 4.0 * (this->right_node.z - min_estimate_nu)
-			/ (this->greater_nu_method_param * this->greater_nu_lipconst);
-	}
-	else
-	{
-		double min_estimate_nu = subsets.at(this->left_node.nu).min_estimator;
-
-		this->greater_nu_lipconst = subsets.at(this->left_node.nu).lip_const;
-		this->greater_nu_method_param = subsets.at(this->left_node.nu).method_parameter;
-
-		this->charact = 2.0 * delta - 4.0 * (this->left_node.z - min_estimate_nu)
-			/ (this->greater_nu_method_param * this->greater_nu_lipconst);
-	}
+	return (std::size_t)&(*method_data.problem);
 }
 
 
-double Solver::Interval::get_interval_length()
+//Solver::problem_list::const_iterator Solver::MethodDataKey::problem_list_begin;
+
+/*
+
+bool Solver::MethodDataKey::operator<(const MethodDataKey& cmp) const
 {
-	unsigned problem_dim = (*problem)->getDimention();
-	double delta = 0.0;
-	if (problem_dim > 1)
+	return (std::distance(problem_list_begin, this->problem)
+		< std::distance(problem_list_begin, cmp.problem));
+}
+*/
+
+
+bool Solver::MethodDataKey::operator==(const MethodDataKey& cmp) const
+{
+	return (problem == cmp.problem);
+}
+
+
+void Solver::MethodDataContainer::update_metrics(MetricsContainer& metrics)
+{
+	update_errors(metrics.errors_by_trials);
+
+	update_portion(metrics.solved_problems_portion_by_trials);
+}
+
+
+void Solver::MethodDataContainer::update_portion(portion_vector& solved_problems_portion)
+{
+	unsigned num_problems_finished = 0;
+
+	for (const auto& method_data_index : problem_series_container)
 	{
-		if (problem_dim == 2)
+		if (method_data_index.second.is_finished())
 		{
-			delta = sqrt(fabs(right_node.x - left_node.x));
-		}
-		else
-		{
-			delta = pow(fabs(right_node.x - left_node.x), 1.0 / problem_dim);
+			++num_problems_finished;
 		}
 	}
-	else
-	{
-		delta = fabs(right_node.x - left_node.x);
-	}
-	return delta;
+
+	double portion = 1.0 * num_problems_finished / problem_series_container.size();
+	solved_problems_portion.emplace_back(MethodData::global_trials_count, portion);
 }
 
 
-double Solver::Interval::get_new_point() const
+void Solver::MethodDataContainer::update_errors(errors_vector& errors_by_trials)
 {
-	double x = 0.0;
-	if (right_node.nu != left_node.nu)
+	double average_error = 0.0;
+	double max_error = -(DBL_MAX);
+
+	for (const auto& method_data_index : problem_series_container)
 	{
-		x = (right_node.x + left_node.x) / 2.0;
-	}
-	else
-	{
-		unsigned problem_dim = (*problem)->getDimention();
-		if (problem_dim > 1)
+		double method_error = method_data_index.second.get_error_value();
+
+		average_error += method_error;
+		if (method_error > max_error)
 		{
-			x = (right_node.x + left_node.x) / 2.0 - sgn(right_node.z - left_node.z)
-				* pow(fabs(right_node.z - left_node.z) / greater_nu_lipconst, 1.0 * problem_dim)
-				/ (2.0 * greater_nu_method_param);
-		}
-		else
-		{
-			x = (right_node.x + left_node.x) / 2.0
-				- (right_node.z - left_node.z) / (2.0 * greater_nu_lipconst * greater_nu_method_param);
+			max_error = method_error;
 		}
 	}
-	return x;
+	average_error /= problem_series_container.size();
+	errors_by_trials.push_back(
+		std::make_pair(MethodData::global_trials_count,
+		std::make_pair(average_error, max_error)));
 }
 
 
-Solver::Trial Solver::Interval::create_new_trial() const
+bool Solver::MethodDataContainer::is_all_finished()
 {
-	Trial another_trial(get_new_point());
+	bool done = true;
+	for (const auto& method_data_index : problem_series_container)
+	{
+		done &= method_data_index.second.is_finished();
+	}
 
-	another_trial.perform_trial(problem);
-
-	return another_trial;
+	return done;
 }
 
 
-double Solver::Interval::sgn(double arg) const
+Solver::MetricsContainer::MetricsContainer(Input input)
 {
-	if (arg < DBL_EPSILON && arg > -(DBL_EPSILON))
-	{
-		return 0.0;
-	}
-	if (arg > 0.0)
-	{
-		return 1.0;
-	}
-	else
-	{
-		return -1.0;
-	}
+	double dist = fabs(input.right - input.left);
+	errors_by_trials.push_back(std::make_pair(0, std::make_pair(dist, dist)));
+
+	// this->max_error_by_trials.emplace_back(0, 0.5 * distance);
 }
 
 
+void Solver::MethodDataContainer::add_problem(problem_iterator problem)
+{
+	// problem_series_container.emplace(problem, problem);
+
+	problem_series_container.emplace(problem, problem);
+}
+
+
+void Solver::MethodDataContainer::dump_solving_results(
+	std::list<ProblemSolvingResult>& results)
+{
+	for (const auto& method_data_index : problem_series_container)
+	{
+		results.emplace_back(method_data_index.second);
+	}
+}
 
 
 void Solver::SimultaneousMethodDataContainer::sort_segment_set()
@@ -812,7 +917,7 @@ void Solver::SimultaneousMethodDataContainer::sort_segment_set()
 void Solver::SimultaneousMethodDataContainer::add_new_trial(const std::pair<problem_iterator, Trial>& new_trial_data)
 {
 	auto target_problem_data = problem_series_container.find(
-		ProblemIterator(new_trial_data.first));
+		MethodDataKey(new_trial_data.first));
 
 	target_problem_data->second.add_new_trial(new_trial_data.second);
 }
@@ -824,7 +929,7 @@ void Solver::SimultaneousMethodDataContainer::split_interval(
 	auto old_interval = new_trial_data.first;
 
 	auto target_problem_data =
-		problem_series_container.find(ProblemIterator(old_interval.problem));
+		problem_series_container.find(MethodDataKey(old_interval.problem));
 
 	Interval left_subinterval(old_interval.problem,
 		old_interval.left_node, new_trial_data.second);
@@ -955,7 +1060,10 @@ void Solver::DynamicMethodDataContainer::take_problem_from_queue()
 		problem_queue.pop();
 
 		auto target_problem_data =
-			problem_series_container.find(ProblemIterator(another_problem_to_solve));
+			problem_series_container.find(MethodDataKey(another_problem_to_solve));
+
+		/*auto target_problem_data = problem_series_container_1.find(
+			ProblemIterator(another_problem_to_solve));*/
 
 		active_solving_problems.push_front(std::ref(target_problem_data->second));
 	}
@@ -976,7 +1084,6 @@ void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
 		[](std::reference_wrapper<MethodData> solving_problem_reference) -> void
 	{
 		++MethodData::global_trials_count;
-
 
 		MethodData::perform_iteration(solving_problem_reference);
 	});
@@ -1006,98 +1113,8 @@ void Solver::DynamicMethodDataContainer::complete_iteration()
 }
 
 
-void Solver::MethodDataContainer::update_metrics(MetricsContainer& metrics)
-{
-	update_errors(metrics.errors_by_trials);
-
-	update_portion(metrics.solved_problems_portion_by_trials);
-}
 
 
-void Solver::MethodDataContainer::update_portion(portion_vector& solved_problems_portion)
-{
-	unsigned num_problems_finished = 0;
-
-	for (const auto& method_data_index : problem_series_container)
-	{
-		if (method_data_index.second.is_finished())
-		{
-			++num_problems_finished;
-		}
-	}
-
-	double portion = 1.0 * num_problems_finished / problem_series_container.size();
-	solved_problems_portion.emplace_back(MethodData::global_trials_count, portion);
-}
-
-
-void Solver::MethodDataContainer::update_errors(errors_vector& errors_by_trials)
-{
-	double average_error = 0.0;
-	double max_error = -(DBL_MAX);
-
-	for (const auto& method_data_index : problem_series_container)
-	{
-		double method_error = method_data_index.second.get_error_value();
-
-		average_error += method_error;
-		if (method_error > max_error)
-		{
-			max_error = method_error;
-		}
-	}
-	average_error /= problem_series_container.size();
-	errors_by_trials.push_back(
-		std::make_pair(MethodData::global_trials_count,
-		std::make_pair(average_error, max_error)));
-}
-
-
-bool Solver::MethodDataContainer::is_all_finished()
-{
-	bool done = true;
-	for (const auto& method_data_index : problem_series_container)
-	{
-		done &= method_data_index.second.is_finished();
-	}
-
-	return done;
-}
-
-
-Solver::MetricsContainer::MetricsContainer(Input input)
-{
-	double dist = fabs(input.right - input.left);
-	errors_by_trials.push_back(std::make_pair(0, std::make_pair(dist, dist)));
-
-	// this->max_error_by_trials.emplace_back(0, 0.5 * distance);
-}
-
-
-void Solver::MethodDataContainer::add_problem(problem_iterator problem)
-{
-	problem_series_container.emplace(problem, problem);
-}
-
-
-void Solver::MethodDataContainer::dump_solving_results(
-	std::list<ProblemSolvingResult>& results)
-{
-	for (const auto& method_data_index : problem_series_container)
-	{
-		results.emplace_back(method_data_index.second);
-	}
-}
-
-
-Solver::problem_list::const_iterator Solver::ProblemIterator::problem_list_begin;
-
-
-bool Solver::ProblemIterator::operator<(const ProblemIterator& cmp) const
-{
-	return (std::distance(problem_list_begin, this->problem_ptr)
-		< std::distance(problem_list_begin, cmp.problem_ptr));
-}
 
 void Solver::run_simultaneous_search(Output& out)
 {
@@ -1162,6 +1179,7 @@ void Solver::run_sequential_search(Output& out)
 		do
 		{
 			method_data.parallel_perform_iteration();
+
 		} while (!method_data.is_finished());
 		out.add_problem_solving_result(method_data);
 	}
@@ -1172,7 +1190,7 @@ void Solver::run_sequential_search(Output& out)
 
 void Solver::run_solver(Output& out) {
 
-	Solver::ProblemIterator::problem_list_begin = problems.begin();
+	//Solver::MethodDataKey::problem_list_begin = problems.begin();
 
 	Solver::MethodData::set_method_input(input);
 

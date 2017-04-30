@@ -8,6 +8,8 @@
 #include <map>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
+
 
 #include <tbb/concurrent_vector.h>
 #include <tbb/parallel_do.h>
@@ -20,13 +22,6 @@
 //#include <mpi.h>
 
 //#include <mpi.h>
-
-/*
-#include <cilk\cilk.h>
-#include <cilk\cilk_stub.h>
-#include <cilk\reducer.h>
-#include <cilk\reducer_opadd.h>
-*/
 
 class Solver
 {
@@ -102,6 +97,8 @@ public:
 		}
 	};
 
+	
+
 	typedef std::vector <std::pair<unsigned, std::pair<double, double>>> errors_vector;
 	typedef std::vector <std::pair<unsigned, double>> portion_vector;
 
@@ -131,15 +128,8 @@ public:
 	};
 
 private:
-	struct ProblemIterator
-	{
-		static problem_iterator problem_list_begin;
-		problem_iterator problem_ptr;
+	
 
-		bool operator<(const ProblemIterator& cmp) const;
-
-		ProblemIterator(problem_iterator iterator) : problem_ptr(iterator) {}
-	};
 
 	struct Trial
 	{
@@ -288,7 +278,8 @@ private:
 		static void set_method_input(const Input&);
 
 		static void perform_iteration(MethodData&);
-		// bool operator==(const MethodData&) const;
+
+		//bool operator==(const MethodData&) const;
 
 		unsigned trials_count = 0;
 		unsigned total_trials_count = 0;
@@ -362,9 +353,23 @@ private:
 		void calc_elapsed_time();
 	};
 
-	struct ProblemIteratorHasher
+	struct MethodDataKey
 	{
-		size_t operator() (const problem_iterator&) const;
+		//static problem_iterator problem_list_begin;
+
+		problem_iterator problem;
+
+		//bool operator<(const MethodDataKey& cmp) const;
+
+		bool operator==(const MethodDataKey& cmp) const;
+
+		MethodDataKey(problem_iterator in_problem) : problem(in_problem) {}
+	};
+
+
+	struct MethodDataKeyHasher
+	{
+		std::size_t operator() (const MethodDataKey&) const;
 	};
 
 
@@ -389,7 +394,9 @@ private:
 		void add_problem(problem_iterator);
 
 	protected:
-		std::map<ProblemIterator, MethodData> problem_series_container;
+		//std::map<ProblemIterator, MethodData> problem_series_container;
+
+		std::unordered_map<MethodDataKey, MethodData, MethodDataKeyHasher> problem_series_container;
 
 		void update_errors(errors_vector&);
 		void update_portion(portion_vector&);
@@ -446,6 +453,7 @@ private:
 		void take_problem_from_queue();
 
 		std::list<std::reference_wrapper<MethodData>> active_solving_problems;
+
 		std::queue<problem_iterator> problem_queue;
 	};
 
