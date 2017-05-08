@@ -21,13 +21,7 @@
     <ClCompile Include="infrastructure.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="grishagin_function.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="solver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="grishagin_problem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="gkls\rnd_gen.cpp">
@@ -51,18 +45,18 @@
     <ClCompile Include="gkls\gkls_random.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VagrisProblem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Grishagin\grishagin_function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hill.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="infrastructure.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="grishagin_function.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="math_function.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="opt_problem.h">
@@ -99,6 +93,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gkls\gkls_random.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VagrisProblem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Grishagin\grishagin_function.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

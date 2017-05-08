@@ -1,20 +1,17 @@
+
 #include "GKLSProblem.h"
 
-GKLSProblem::~GKLSProblem()
-{
-}
 
-
-GKLSProblem::GKLSProblem(GKLSFunctionPtr in_objective) : objective(in_objective)
+GKLSProblem::GKLSProblem(GKLSFunctionP in_objective) : objective(in_objective)
 {
 	generator.SetObjective(in_objective.get());
 
-	problem = generator.GenerateProblem(0);
+	problem = generator.GenerateProblem(DEFAULT_GENERATOR_FLAGS);
 }
 
 
-GKLSProblem::GKLSProblem(GKLSFunctionPtr in_objective,
-	const std::vector<GKLSFunctionPtr>& in_constrains) : objective(in_objective)
+GKLSProblem::GKLSProblem(GKLSFunctionP in_objective,
+	const std::vector<GKLSFunctionP>& in_constrains) : objective(in_objective)
 {
 	generator.SetObjective(in_objective.get());
 
@@ -22,7 +19,7 @@ GKLSProblem::GKLSProblem(GKLSFunctionPtr in_objective,
 	{
 		constrains.push_back(function);
 
-		generator.AddConstraint(function.get(), CONSTRAINT_SHIFT_PARAMETER);
+		generator.AddConstraint(function.get(), CONSTRAINT_SHIFT_PARAMETER, 1, 5.0);
 	}
 
 	if (in_constrains.empty())

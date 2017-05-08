@@ -17,22 +17,21 @@
 class GKLSProblem : public OptProblem
 {
 public:
-	typedef std::shared_ptr<gkls::GKLSFunction> GKLSFunctionPtr;
+	typedef std::shared_ptr<gkls::GKLSFunction> GKLSFunctionP;
 private:
-	static const int DIMENSION = 2;
 	static const int KEY = 1;
 	static const int PRECISION = 10;
 
 	const double CONSTRAINT_SHIFT_PARAMETER = 0.01f;
 
 	const int CONSTRAINTED_PROBLEM_GENERATOR_FLAGS =
-		IMPROVE_OBJECTIVE | TOTAL_DELTA | ZOOM | SHIFT;
+		IMPROVE_OBJECTIVE | TOTAL_DELTA; //| ZOOM | SHIFT;
 
 	const int DEFAULT_GENERATOR_FLAGS = 0;
 
-	GKLSFunctionPtr objective;
+	GKLSFunctionP objective;
 
-	std::vector<GKLSFunctionPtr> constrains;
+	std::vector<GKLSFunctionP> constrains;
 
 	TConstrainedProblemGenerator<gkls::GKLSFunction> generator;
 
@@ -47,11 +46,9 @@ private:
 public:
 	static const gkls::GKLSFuncionType DEFAULT_GKLS_FUNCTION_TYPE = gkls::GKLSFuncionType::TD2;
 
-	GKLSProblem(GKLSFunctionPtr);
+	GKLSProblem(GKLSFunctionP);
 
-	GKLSProblem(GKLSFunctionPtr, const std::vector<GKLSFunctionPtr>&);
-
-	~GKLSProblem();
+	GKLSProblem(GKLSFunctionP, const std::vector<GKLSFunctionP>&);
 
 	virtual double getObjectiveValue(double scalar) override;
 

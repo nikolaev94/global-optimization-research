@@ -5,8 +5,12 @@
 #include <vector>
 #include <memory>
 
-#include <grishagin_function.h>
-#include <grishagin_problem.h>
+//
+//#include <grishagin_function.h>
+//#include <grishagin_problem.h>
+
+#include <Grishagin\grishagin_function.hpp>
+#include <VagrisProblem.h>
 
 #include <gkls\gkls_function.hpp>
 #include <GKLSProblem.h>

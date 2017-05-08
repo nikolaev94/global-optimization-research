@@ -10,7 +10,7 @@ class OptProblem
 {
 
 public:
-	typedef std::shared_ptr<OptProblem> OptProblemPtr;
+	typedef std::shared_ptr<OptProblem> OptProblemP;
 
 	virtual double getObjectiveValue(double arg) = 0;
 	virtual double getContraintValue(std::size_t number, double arg) = 0;

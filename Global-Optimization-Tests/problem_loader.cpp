@@ -33,7 +33,7 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 	{
 		for (unsigned int no = 1; no <= series_size; no++)
 		{
-			GKLSProblem::GKLSFunctionPtr objective(new gkls::GKLSFunction());
+			GKLSProblem::GKLSFunctionP objective(new gkls::GKLSFunction());
 
 			objective->SetFunctionClass(
 				gkls_function_class, user_parameters.get_dimension());
@@ -42,11 +42,11 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 
 			objective->SetFunctionNumber(no);
 
-			std::vector<GKLSProblem::GKLSFunctionPtr> constrains;
+			std::vector<GKLSProblem::GKLSFunctionP> constrains;
 
 			for (unsigned int constraint_no = 0; constraint_no < num_constrains;)
 			{
-				GKLSProblem::GKLSFunctionPtr constraint_function(new gkls::GKLSFunction());
+				GKLSProblem::GKLSFunctionP constraint_function(new gkls::GKLSFunction());
 
 				constraint_function->SetFunctionClass(gkls_function_class,
 					user_parameters.get_dimension());
@@ -60,13 +60,13 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 				constrains.push_back(constraint_function);
 			}
 
-			problems.push_back(OptProblem::OptProblemPtr(new GKLSProblem(objective,
+			problems.push_back(OptProblem::OptProblemP(new GKLSProblem(objective,
 				constrains)));
 		}
 	}
 	else
 	{
-		GKLSProblem::GKLSFunctionPtr objective(new gkls::GKLSFunction());
+		GKLSProblem::GKLSFunctionP objective(new gkls::GKLSFunction());
 
 		objective->SetFunctionClass(
 			gkls_function_class, user_parameters.get_dimension());
@@ -76,12 +76,12 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 		objective->SetFunctionNumber(selected_problem_no);
 
 
-		std::vector<GKLSProblem::GKLSFunctionPtr> constrains;
+		std::vector<GKLSProblem::GKLSFunctionP> constrains;
 
 
 		for (unsigned int constraint_no = 0; constraint_no < num_constrains;)
 		{
-			GKLSProblem::GKLSFunctionPtr constraint_function(new gkls::GKLSFunction());
+			GKLSProblem::GKLSFunctionP constraint_function(new gkls::GKLSFunction());
 
 			constraint_function->SetFunctionClass(gkls_function_class,
 				user_parameters.get_dimension());
@@ -95,7 +95,7 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 			constrains.push_back(constraint_function);
 		}
 
-		problems.push_back(OptProblem::OptProblemPtr(new GKLSProblem(objective, constrains)));
+		problems.push_back(OptProblem::OptProblemP(new GKLSProblem(objective, constrains)));
 	}
 }
 
@@ -107,22 +107,62 @@ void ProblemLoader::load_vagris_series(const UserParameters& user_parameters,
 
 	auto selected_problem_no = user_parameters.get_selected_problem_no();
 
+	auto num_constrains = user_parameters.get_num_constrains();
+
 	if (!selected_problem_no)
 	{
 		for (unsigned int no = 1; no <= series_size; no++)
 		{
-			GrishaginFunction::GrishaginFunctionPtr vagris_function(
+			VagrisProblem::VagrisFunctionP objective(new vagrish::GrishaginFunction());
+
+			objective->SetFunctionNumber(no);
+
+			std::vector<VagrisProblem::VagrisFunctionP> constrains;
+
+			for (unsigned int constraint_no = 0; constraint_no < num_constrains;)
+			{
+				VagrisProblem::VagrisFunctionP constraint_function(new vagrish::GrishaginFunction());
+
+				++constraint_no;
+
+				constraint_function->SetFunctionNumber(no + constraint_no);
+
+				constrains.push_back(constraint_function);
+			}
+
+			problems.push_back(OptProblem::OptProblemP(new VagrisProblem(objective, constrains)));
+
+			/*GrishaginFunction::GrishaginFunctionPtr vagris_function(
 				new GrishaginFunction(no));
 			problems.push_back(OptProblem::OptProblemPtr(
-				new GrishaginProblem(vagris_function)));
+				new GrishaginProblem(vagris_function)));*/
 		}
 	}
 	else
 	{
-		GrishaginFunction::GrishaginFunctionPtr vagris_function(
+		VagrisProblem::VagrisFunctionP objective(new vagrish::GrishaginFunction());
+
+		objective->SetFunctionNumber(selected_problem_no);
+
+		std::vector<VagrisProblem::VagrisFunctionP> constrains;
+
+		for (unsigned int constraint_no = 0; constraint_no < num_constrains;)
+		{
+			VagrisProblem::VagrisFunctionP constraint_function(new vagrish::GrishaginFunction());
+
+			++constraint_no;
+
+			constraint_function->SetFunctionNumber(selected_problem_no + constraint_no);
+
+			constrains.push_back(constraint_function);
+		}
+
+		problems.push_back(OptProblem::OptProblemP(new VagrisProblem(objective, constrains)));
+
+		/*GrishaginFunction::GrishaginFunctionPtr vagris_function(
 			new GrishaginFunction(selected_problem_no));
 		problems.push_back(OptProblem::OptProblemPtr(
-			new GrishaginProblem(vagris_function)));
+			new GrishaginProblem(vagris_function)));*/
 	}
 }
 
@@ -191,4 +231,3 @@ void ProblemLoader::load_series(const UserParameters& user_parameters,
 		break;
 	}
 }
-

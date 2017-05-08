@@ -309,8 +309,6 @@ private:
 
 		void merge_segment_set_into(std::list<Interval>&);
 
-		//void merge_segment_set_into(std::vector<Interval>&);
-
 		void parallel_perform_iteration();
 		
 		void dump_solving_result(std::list<ProblemSolvingResult>& results);

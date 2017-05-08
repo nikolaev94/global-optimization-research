@@ -108,7 +108,7 @@ void Solver::Trial::perform_trial(problem_iterator problem)
 	this->admissible = true;
 }
 
-bool Solver::TrialSubset::USE_NEIGHBOUR_NODES = true; ///false; // 
+bool Solver::TrialSubset::USE_NEIGHBOUR_NODES = false; // true; ///false; // 
 
 void Solver::TrialSubset::calc_subset_min_estimate()
 {

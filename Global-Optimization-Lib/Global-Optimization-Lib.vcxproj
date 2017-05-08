@@ -176,12 +176,12 @@
     <ClCompile Include="gkls\gkls_function.cpp" />
     <ClCompile Include="gkls\gkls_random.cpp" />
     <ClCompile Include="gkls\rnd_gen.cpp" />
-    <ClCompile Include="grishagin_function.cpp" />
-    <ClCompile Include="grishagin_problem.cpp" />
+    <ClCompile Include="Grishagin\grishagin_function.cpp" />
     <ClCompile Include="infrastructure.cpp" />
     <ClCompile Include="map\X_to_y.cpp" />
     <ClCompile Include="map\Y_to_x.cpp" />
     <ClCompile Include="solver.cpp" />
+    <ClCompile Include="VagrisProblem.cpp" />
     <ClCompile Include="vagris\funcs.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -193,13 +193,13 @@
     <ClInclude Include="gkls\gkls_random.hpp" />
     <ClInclude Include="gkls\gkls.h" />
     <ClInclude Include="gkls\rnd_gen.h" />
-    <ClInclude Include="grishagin_function.h" />
+    <ClInclude Include="Grishagin\grishagin_function.hpp" />
     <ClInclude Include="hill.h" />
     <ClInclude Include="infrastructure.h" />
     <ClInclude Include="map\map.h" />
-    <ClInclude Include="math_function.h" />
     <ClInclude Include="opt_problem.h" />
     <ClInclude Include="solver.h" />
+    <ClInclude Include="VagrisProblem.h" />
     <ClInclude Include="vagris\funcs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

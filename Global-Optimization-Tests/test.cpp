@@ -42,10 +42,6 @@ int main(int argc, char* argv[])
 
 	std::string prefix = loader.get_output_file_prefix(user_parameters);
 
-	/*
-	Solver::Input input = { 0.0, 1.0, user_parameters.get_precision(), user_parameters.get_method_parameter(),
-		user_parameters.get_workers_number(), user_parameters.get_solving_method() };
-		*/
 
 	Solver::Input input = { 0.0, 1.0, user_parameters.get_precision(), user_parameters.get_method_parameter(),
 		user_parameters.get_workers_number(), user_parameters.get_solving_method() };
