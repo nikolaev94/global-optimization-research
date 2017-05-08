@@ -10,8 +10,9 @@ void UserParameters::show_usage()
 	std::cout << "-p --parameter <float>: Method initial parameter" << std::endl;
 	std::cout << "-e --eps <float>: Method precison" << std::endl;
 	std::cout << "-w --workers <integer>: Number of workers" << std::endl;
-	std::cout << "-n <integer>: Size of the generated problem series" << std::endl;
+	std::cout << "-n <integer>: Size of problem series" << std::endl;
 	std::cout << "-i <integer>: Solve provided problem in demo mode" << std::endl;
+	std::cout << "-c <integer>: Number of problem constraints" << std::endl;
 
 	exit(EXIT_SUCCESS);
 }
@@ -62,17 +63,20 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 			{
 				std::string solving_method_name(argv[++i]);
 
-				if (solving_method_name == "dynamic" || solving_method_name == "Dynamic")
+				if (solving_method_name == "dynamic" || solving_method_name == "Dynamic"
+					|| solving_method_name == "dyn")
 				{
 					this->solving_method = Solver::DYNAMIC;
 				}
 				else if (solving_method_name == "simultaneous"
-					|| solving_method_name == "Simultaneous")
+					|| solving_method_name == "Simultaneous"
+					|| solving_method_name == "sim")
 				{
 					this->solving_method = Solver::SIMULTANEOUS;
 				}
 				else if (solving_method_name == "sequential"
-					|| solving_method_name == "Sequential")
+					|| solving_method_name == "Sequential"
+					|| solving_method_name == "seq")
 				{
 					this->solving_method = Solver::SEQUENTIAL;
 				}
@@ -234,7 +238,7 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 	}
 }
 
-unsigned int UserParameters::get_dimensions() const
+unsigned int UserParameters::get_dimension() const
 {
 	return this->dimensions;
 }

@@ -30,13 +30,7 @@
     <ClCompile Include="grishagin_problem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gkls_function.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="gkls\rnd_gen.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gkls_problem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="map\X_to_y.cpp">
@@ -46,6 +40,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="vagris\funcs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GKLSProblem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gkls\gkls_function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gkls\gkls_random.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,19 +71,10 @@
     <ClInclude Include="solver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="grishagin_problem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="gkls\gkls.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gkls\rnd_gen.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gkls_function.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gkls_problem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="map\map.h">
@@ -96,6 +90,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vagris\funcs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GKLSProblem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gkls\gkls_function.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gkls\gkls_random.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

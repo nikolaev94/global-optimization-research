@@ -294,14 +294,14 @@ double TConstrainedProblemGenerator<FType>::CalculateRHS(double delta, int m, do
   }
 
   double* f = new double[sumn];//значение функции
-  double* yArray = new double[dimension*omp_get_max_threads()];
+  double* yArray = new double[dimension];//*omp_get_max_threads()];
 
-  #pragma omp parallel for num_threads(omp_get_max_threads())
+  // #pragma omp parallel for num_threads(omp_get_max_threads())
   for (int i = 0; i < sumn; i++)
   {
     double w;
     int z = i;
-    double* y = yArray + omp_get_thread_num()*dimension;
+	double* y = yArray + 0 * dimension; // omp_get_thread_num()*dimension;
     //Вычисляем координаты точки испытания
     for (unsigned j = 0; j < dimension; j++)
     {

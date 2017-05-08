@@ -172,9 +172,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="gkls_problem.cpp" />
+    <ClCompile Include="GKLSProblem.cpp" />
+    <ClCompile Include="gkls\gkls_function.cpp" />
+    <ClCompile Include="gkls\gkls_random.cpp" />
     <ClCompile Include="gkls\rnd_gen.cpp" />
-    <ClCompile Include="gkls_function.cpp" />
     <ClCompile Include="grishagin_function.cpp" />
     <ClCompile Include="grishagin_problem.cpp" />
     <ClCompile Include="infrastructure.cpp" />
@@ -187,12 +188,12 @@
     <ClInclude Include="examin\ConstrainedProblem.hpp" />
     <ClInclude Include="examin\ConstrainedProblemGenerator.hpp" />
     <ClInclude Include="examin\problemPar.hpp" />
-    <ClInclude Include="gkls_problem.h" />
+    <ClInclude Include="GKLSProblem.h" />
+    <ClInclude Include="gkls\gkls_function.hpp" />
+    <ClInclude Include="gkls\gkls_random.hpp" />
     <ClInclude Include="gkls\gkls.h" />
     <ClInclude Include="gkls\rnd_gen.h" />
-    <ClInclude Include="gkls_function.h" />
     <ClInclude Include="grishagin_function.h" />
-    <ClInclude Include="grishagin_problem.h" />
     <ClInclude Include="hill.h" />
     <ClInclude Include="infrastructure.h" />
     <ClInclude Include="map\map.h" />

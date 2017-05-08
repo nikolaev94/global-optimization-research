@@ -4,9 +4,11 @@
 
 #include "opt_problem.h"
 
+#include <chrono>
 #include <queue>
 #include <map>
 #include <set>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -18,10 +20,13 @@
 #include <tbb/spin_mutex.h>
 #include <tbb/task_scheduler_init.h>
 #include <tbb/tick_count.h>
+#include <tbb/parallel_for_each.h>
+#include <tbb/parallel_reduce.h>
+
 
 //#include <mpi.h>
 
-//#include <mpi.h>
+
 
 class Solver
 {
@@ -200,10 +205,14 @@ private:
 		Trial create_new_trial() const;
 
 		Interval() = delete;
-		Interval(problem_iterator _problem) : problem(_problem) {}
+
+		Interval(problem_iterator in_problem) : problem(in_problem) {}
 		Interval(problem_iterator in_problem, const Trial& in_left_node,
 			const Trial& in_right_node)
 			: problem(in_problem), left_node(in_left_node), right_node(in_right_node) {}
+
+		Interval(const Interval& src) : problem(src.problem), left_node(src.left_node), right_node(src.right_node),
+			charact(src.charact), greater_nu_lipconst(src.greater_nu_lipconst), greater_nu_method_param(src.greater_nu_method_param) {}
 
 		// By default, compare intervals by charateristics
 		bool operator< (const Interval& interval) const
@@ -273,7 +282,9 @@ private:
 	{
 		static Input input;
 		static unsigned global_iterations_count;
-		static tbb::atomic<unsigned> global_trials_count;
+
+		// static unsigned global_trials_count;
+		static tbb::atomic<unsigned int> global_trials_count;
 
 		static void set_method_input(const Input&);
 
@@ -298,6 +309,8 @@ private:
 
 		void merge_segment_set_into(std::list<Interval>&);
 
+		//void merge_segment_set_into(std::vector<Interval>&);
+
 		void parallel_perform_iteration();
 		
 		void dump_solving_result(std::list<ProblemSolvingResult>& results);
@@ -310,7 +323,7 @@ private:
 
 		double get_error_value() const;
 
-		MethodData(const OptProblem::OptProblemPtr&);
+		void sort_segment_set();
 
 		MethodData(problem_iterator);
 
@@ -343,8 +356,6 @@ private:
 		bool update_lip_const_lower_estimation(const Trial&);
 
 		Trial get_new_trial();
-
-		void sort_segment_set();
 
 		void split_best_interval(const Trial&);
 
@@ -416,6 +427,8 @@ private:
 	private:
 		std::list<Interval> all_segments;
 
+		//std::vector<Interval> all_segments;
+
 		void merge_segment_sets();
 
 		void sort_segment_set();
@@ -447,6 +460,9 @@ private:
 		void enqueue_problems(const problem_list&);
 
 		void take_problem_from_queue();
+
+
+		//std::list<problem_iterator> active_solving_problems1;
 
 		std::list<std::reference_wrapper<MethodData>> active_solving_problems;
 

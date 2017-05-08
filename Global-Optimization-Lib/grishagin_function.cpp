@@ -14,7 +14,7 @@ unsigned char GrishaginFunction::matcon[10][45] = {
 	{ 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0 },
 };
 
-void GrishaginFunction::mapScalar_To_2DSpace(double x, double point[DIMENSION])
+void GrishaginFunction::mapScalarTo2DSpace(double x, double point[DIMENSION])
 {
 	mapd(x, PRECISION, point, DIMENSION, KEY);
 

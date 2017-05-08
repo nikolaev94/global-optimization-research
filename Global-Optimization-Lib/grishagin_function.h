@@ -14,7 +14,9 @@
 class GrishaginFunction : public MathFunction
 {
 private:
-	static const int DIMENSION = 2, KEY = 1, PRECISION = 10;
+	static const int DIMENSION = 2;
+	static const int KEY = 1;
+	static const int PRECISION = 10;
 
 	static unsigned char matcon[10][45];
 	static double rand_minimums[];
@@ -37,10 +39,10 @@ public:
 
 	typedef std::shared_ptr<GrishaginFunction> GrishaginFunctionPtr;
 
-	GrishaginFunction(int _sequential_number = 0);
+	GrishaginFunction(int in_sequential_number = 0);
 	~GrishaginFunction();
 
-	static void mapScalar_To_2DSpace(double x, double point[DIMENSION]);
+	static void mapScalarTo2DSpace(double x, double point[DIMENSION]);
 
 	int getFunctionSequentialNumber();
 	double getValue(double arg) override;

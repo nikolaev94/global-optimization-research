@@ -7,8 +7,14 @@
 
 #include <grishagin_function.h>
 #include <grishagin_problem.h>
-#include <gkls_function.h>
-#include <gkls_problem.h>
+
+//#include <gkls_function.h>
+//#include <gkls_problem.h>
+
+#include <gkls\gkls_function.hpp>
+#include <GKLSProblem.h>
+
+
 
 #include <solver.h>
 
@@ -17,11 +23,14 @@
 class ProblemLoader
 {
 private:
-	void set_GKLS_Simple_parameters(unsigned dimension);
-	void set_GKLS_Hard_parameters(unsigned dimension);
-	int set_GKLS_class_parameters(const UserParameters& user_parameter);
+	//void set_GKLS_Simple_parameters(unsigned dimension);
+	//void set_GKLS_Hard_parameters(unsigned dimension);
 
-	void print_GKLS_class_parameters();
+	//int set_GKLS_class_parameters(const UserParameters& user_parameter);
+
+	//void print_GKLS_class_parameters();
+
+	gkls::GKLSClass map_GKLS_function_class(const FunctionClass&);
 
 	void load_GKLS_series(const UserParameters&, Solver::problem_list&);
 

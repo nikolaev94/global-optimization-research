@@ -21,8 +21,8 @@ public:
 	double getReferenceMinimum() override;
 	unsigned getDimention() override;
 
-	double getObjectiveValue(double arg) const override;
-	double getContraintValue(std::size_t number, double arg) const override;
+	double getObjectiveValue(double arg) override;
+	double getContraintValue(std::size_t number, double arg) override;
 	
 	std::size_t getConstraintsNumber() const override;
 };

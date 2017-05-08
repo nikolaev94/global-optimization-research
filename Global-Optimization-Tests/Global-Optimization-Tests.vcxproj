@@ -106,6 +106,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeaderFile />
+      <Cpp0xSupport>false</Cpp0xSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

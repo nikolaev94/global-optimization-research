@@ -104,14 +104,16 @@ double GrishaginProblem::rand_minimums[] = {
 };
 
 
-GrishaginProblem::GrishaginProblem(GrishaginFunction::GrishaginFunctionPtr obj) : objective(obj) {}
+GrishaginProblem::GrishaginProblem(GrishaginFunction::GrishaginFunctionPtr obj)
+	: objective(obj) {}
 
 GrishaginProblem::~GrishaginProblem() {}
 
 double GrishaginProblem::getDistance(double point[], double min_point[])
 {
 	double sum = 0.0;
-	for (size_t i = 0; i < 2; i++) {
+	for (size_t i = 0; i < 2; i++)
+	{
 		sum += pow((point[i] - min_point[i]), 2.0);
 	}
 	return sqrt(sum);
@@ -120,7 +122,7 @@ double GrishaginProblem::getDistance(double point[], double min_point[])
 double GrishaginProblem::getReferenceMinError(double scalar)
 {
 	double trial_point[2];
-	GrishaginFunction::mapScalar_To_2DSpace(scalar, trial_point);
+	GrishaginFunction::mapScalarTo2DSpace(scalar, trial_point);
 
 	int number = objective->getFunctionSequentialNumber();
 
@@ -135,7 +137,7 @@ unsigned GrishaginProblem::getDimention()
 }
 
 
-double GrishaginProblem::getObjectiveValue(double arg) const
+double GrishaginProblem::getObjectiveValue(double arg)
 {
 	return objective->getValue(arg);
 }
@@ -147,7 +149,7 @@ double GrishaginProblem::getReferenceMinimum()
 }
 
 
-double GrishaginProblem::getContraintValue(std::size_t number, double arg) const
+double GrishaginProblem::getContraintValue(std::size_t number, double arg)
 {
 	return 0.0;
 }

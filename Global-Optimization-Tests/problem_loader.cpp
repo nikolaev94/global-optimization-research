@@ -7,106 +7,157 @@ ProblemLoader::ProblemLoader() {}
 ProblemLoader::~ProblemLoader() {}
 
 
-void ProblemLoader::set_GKLS_Hard_parameters(unsigned dimension)
+//void ProblemLoader::set_GKLS_Hard_parameters(unsigned dimension)
+//{
+//	switch (dimension)
+//	{
+//	case 2:
+//		GklsFunction::GKLS_global_dist = 0.9;
+//		GklsFunction::GKLS_global_radius = 0.1;
+//		break;
+//	case 3:
+//		GklsFunction::GKLS_global_dist = 0.9;
+//		GklsFunction::GKLS_global_radius = 0.2;
+//		break;
+//	case 4:
+//		GklsFunction::GKLS_global_dist = 0.9;
+//		GklsFunction::GKLS_global_radius = 0.2;
+//		break;
+//	case 5:
+//		GklsFunction::GKLS_global_dist = 0.66;
+//		GklsFunction::GKLS_global_radius = 0.2;
+//		break;
+//	default:
+//		break;
+//	}
+//}
+
+
+//void ProblemLoader::set_GKLS_Simple_parameters(unsigned dimension)
+//{
+//	switch (dimension)
+//	{
+//	case 2:
+//		GklsFunction::GKLS_global_dist = 0.9;
+//		GklsFunction::GKLS_global_radius = 0.2;
+//		break;
+//	case 3:
+//		GklsFunction::GKLS_global_dist = 0.66;
+//		GklsFunction::GKLS_global_radius = 0.2;
+//		break;
+//	case 4:
+//		GklsFunction::GKLS_global_dist = 0.66;
+//		GklsFunction::GKLS_global_radius = 0.2;
+//		break;
+//	case 5:
+//		GklsFunction::GKLS_global_dist = 0.66;
+//		GklsFunction::GKLS_global_radius = 0.3;
+//		break;
+//	default:
+//		break;
+//	}
+//}
+
+//int ProblemLoader::set_GKLS_class_parameters(const UserParameters& user_parameter)
+//{
+//	GklsFunction::GKLS_dim = user_parameter.get_dimensions();
+//	GklsFunction::GKLS_set_default();
+//
+//	switch (user_parameter.get_function_class())
+//	{
+//	case FunctionClass::GKLS_SIMPLE:
+//		set_GKLS_Simple_parameters(user_parameter.get_dimensions());
+//		break;
+//	case FunctionClass::GKLS_HARD:
+//		set_GKLS_Hard_parameters(user_parameter.get_dimensions());
+//		break;
+//	default:
+//		break;
+//	}
+//
+//	return GklsFunction::GKLS_parameters_check();
+//}
+
+
+gkls::GKLSClass ProblemLoader::map_GKLS_function_class(const FunctionClass& function_class)
 {
-	switch (dimension)
+	switch (function_class)
 	{
-	case 2:
-		GklsFunction::GKLS_global_dist = 0.9;
-		GklsFunction::GKLS_global_radius = 0.1;
-		break;
-	case 3:
-		GklsFunction::GKLS_global_dist = 0.9;
-		GklsFunction::GKLS_global_radius = 0.2;
-		break;
-	case 4:
-		GklsFunction::GKLS_global_dist = 0.9;
-		GklsFunction::GKLS_global_radius = 0.2;
-		break;
-	case 5:
-		GklsFunction::GKLS_global_dist = 0.66;
-		GklsFunction::GKLS_global_radius = 0.2;
-		break;
+	case GKLS_SIMPLE:
+		return gkls::GKLSClass::Simple;
+	case GKLS_HARD:
+		return gkls::GKLSClass::Hard;
 	default:
-		break;
+		return gkls::GKLSClass::Simple;
 	}
-}
-
-
-void ProblemLoader::set_GKLS_Simple_parameters(unsigned dimension)
-{
-	switch (dimension)
-	{
-	case 2:
-		GklsFunction::GKLS_global_dist = 0.9;
-		GklsFunction::GKLS_global_radius = 0.2;
-		break;
-	case 3:
-		GklsFunction::GKLS_global_dist = 0.66;
-		GklsFunction::GKLS_global_radius = 0.2;
-		break;
-	case 4:
-		GklsFunction::GKLS_global_dist = 0.66;
-		GklsFunction::GKLS_global_radius = 0.2;
-		break;
-	case 5:
-		GklsFunction::GKLS_global_dist = 0.66;
-		GklsFunction::GKLS_global_radius = 0.3;
-		break;
-	default:
-		break;
-	}
-}
-
-int ProblemLoader::set_GKLS_class_parameters(const UserParameters& user_parameter)
-{
-	GklsFunction::GKLS_dim = user_parameter.get_dimensions();
-	GklsFunction::GKLS_set_default();
-
-	switch (user_parameter.get_function_class())
-	{
-	case FunctionClass::GKLS_SIMPLE:
-		set_GKLS_Simple_parameters(user_parameter.get_dimensions());
-		break;
-	case FunctionClass::GKLS_HARD:
-		set_GKLS_Hard_parameters(user_parameter.get_dimensions());
-		break;
-	default:
-		break;
-	}
-
-	return GklsFunction::GKLS_parameters_check();
 }
 
 
 void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 	Solver::problem_list& problems)
 {
-	if (set_GKLS_class_parameters(user_parameters))
-	{
-		std::cerr << "Failed to set GKSL parameters" << std::endl;
-
-		exit(EXIT_FAILURE);
-	}
 
 	auto series_size = user_parameters.get_series_size();
 
 	auto selected_problem_no = user_parameters.get_selected_problem_no();
 
+	auto gkls_function_class =
+		map_GKLS_function_class(user_parameters.get_function_class());
+
 	if (!selected_problem_no)
 	{
 		for (unsigned int no = 1; no <= series_size; no++)
 		{
-			GklsFunction::GklsFunctionPtr gkls_function(
+			GKLSProblem::GKLSFunctionPtr objective(new gkls::GKLSFunction());
+
+			objective->SetFunctionClass(
+				gkls_function_class, user_parameters.get_dimension());
+
+			objective->SetType(gkls::GKLSFuncionType::TD2);
+
+			objective->SetFunctionNumber(no);
+
+
+			problems.push_back(OptProblem::OptProblemPtr(new GKLSProblem(objective)));
+
+			/*GklsFunction::GklsFunctionPtr gkls_function(
 				new GklsFunction(GklsFunction::D2, no));
-			problems.push_back(OptProblem::OptProblemPtr(new GklsProblem(gkls_function)));
+			problems.push_back(OptProblem::OptProblemPtr(new GklsProblem(gkls_function)));*/
 		}
 	}
 	else
 	{
-		GklsFunction::GklsFunctionPtr gkls_function(
+		GKLSProblem::GKLSFunctionPtr objective(new gkls::GKLSFunction());
+
+		objective->SetFunctionClass(
+			gkls_function_class, user_parameters.get_dimension());
+
+		objective->SetType(gkls::GKLSFuncionType::TD);
+
+		objective->SetFunctionNumber(1);
+
+
+		std::vector<GKLSProblem::GKLSFunctionPtr> my_list;
+
+
+
+
+		GKLSProblem::GKLSFunctionPtr constraint(new gkls::GKLSFunction());
+
+		constraint->SetFunctionClass(gkls_function_class, user_parameters.get_dimension());
+
+		constraint->SetType(gkls::GKLSFuncionType::TD);
+
+		constraint->SetFunctionNumber(2);
+
+		my_list.push_back(constraint);
+
+
+		problems.push_back(OptProblem::OptProblemPtr(new GKLSProblem(objective, my_list)));
+
+		/*GklsFunction::GklsFunctionPtr gkls_function(
 			new GklsFunction(GklsFunction::D2, selected_problem_no));
-		problems.push_back(OptProblem::OptProblemPtr(new GklsProblem(gkls_function)));
+		problems.push_back(OptProblem::OptProblemPtr(new GklsProblem(gkls_function)));*/
 	}
 	
 }
@@ -139,12 +190,13 @@ void ProblemLoader::load_vagris_series(const UserParameters& user_parameters,
 }
 
 
-void ProblemLoader::print_GKLS_class_parameters()
-{
-	std::cout << "Dim: " << GklsFunction::GKLS_dim
-		<< " Global dist: " << GklsFunction::GKLS_global_dist
-		<< " Global radius: " << GklsFunction::GKLS_global_radius << std::endl;
-}
+//void ProblemLoader::print_GKLS_class_parameters()
+//{
+//	std::cout << "Dim: " << GklsFunction::GKLS_dim
+//		<< " Global dist: " << GklsFunction::GKLS_global_dist
+//		<< " Global radius: " << GklsFunction::GKLS_global_radius << std::endl;
+//}
+
 
 std::string ProblemLoader::get_output_file_prefix(const UserParameters& user_parameters)
 {
@@ -165,7 +217,7 @@ std::string ProblemLoader::get_output_file_prefix(const UserParameters& user_par
 	}
 
 	output_file_prefix += std::string("dim")
-		+ std::to_string(user_parameters.get_dimensions()) + "_";
+		+ std::to_string(user_parameters.get_dimension()) + "_";
 
 	switch (user_parameters.get_solving_method())
 	{
@@ -194,7 +246,6 @@ void ProblemLoader::load_series(const UserParameters& user_parameters,
 	case FunctionClass::GKLS_SIMPLE:
 	case FunctionClass::GKLS_HARD:
 		load_GKLS_series(user_parameters, problems);
-		print_GKLS_class_parameters();
 		break;
 	case FunctionClass::VAGRIS:
 		load_vagris_series(user_parameters, problems);

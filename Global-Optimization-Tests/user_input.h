@@ -30,7 +30,7 @@ public:
 		precision(0.1), series_size(10), problem_no(0), function_class(FunctionClass::GKLS_SIMPLE), solving_method(Solver::DYNAMIC) {}
 
 	void parse_arguments_from_command_line(int argc, char* argv[]);
-	unsigned int get_dimensions() const;
+	unsigned int get_dimension() const;
 	unsigned int get_series_size() const;
 	unsigned int get_selected_problem_no() const;
 	FunctionClass get_function_class() const;
