@@ -25,7 +25,10 @@ private:
 
 	const double CONSTRAINT_SHIFT_PARAMETER = 0.01f;
 
-	const int GENERATOR_FLAGS = IMPROVE_OBJECTIVE | TOTAL_DELTA | ZOOM | SHIFT;
+	const int CONSTRAINTED_PROBLEM_GENERATOR_FLAGS =
+		IMPROVE_OBJECTIVE | TOTAL_DELTA | ZOOM | SHIFT;
+
+	const int DEFAULT_GENERATOR_FLAGS = 0;
 
 	GKLSFunctionPtr objective;
 
@@ -42,6 +45,7 @@ private:
 	double getEuclideanDistance(double* lhs, double* rhs);
 
 public:
+	static const gkls::GKLSFuncionType DEFAULT_GKLS_FUNCTION_TYPE = gkls::GKLSFuncionType::TD2;
 
 	GKLSProblem(GKLSFunctionPtr);
 

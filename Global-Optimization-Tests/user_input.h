@@ -18,6 +18,7 @@ private:
 	unsigned int num_workers;
 	unsigned int series_size;
 	unsigned int problem_no;
+	unsigned int num_constraints;
 	double method_parameter;
 	double precision;
 	FunctionClass function_class;
@@ -27,9 +28,11 @@ private:
 
 public:
 	UserParameters() : dimensions(2), num_workers(2), method_parameter(5.0),
-		precision(0.1), series_size(10), problem_no(0), function_class(FunctionClass::GKLS_SIMPLE), solving_method(Solver::DYNAMIC) {}
+		num_constraints(0), precision(0.1), series_size(10), problem_no(0),
+		function_class(FunctionClass::GKLS_SIMPLE), solving_method(Solver::DYNAMIC) {}
 
 	void parse_arguments_from_command_line(int argc, char* argv[]);
+	unsigned int get_num_constrains() const;
 	unsigned int get_dimension() const;
 	unsigned int get_series_size() const;
 	unsigned int get_selected_problem_no() const;

@@ -11,7 +11,7 @@ void UserParameters::show_usage()
 	std::cout << "-e --eps <float>: Method precison" << std::endl;
 	std::cout << "-w --workers <integer>: Number of workers" << std::endl;
 	std::cout << "-n <integer>: Size of problem series" << std::endl;
-	std::cout << "-i <integer>: Solve provided problem in demo mode" << std::endl;
+	std::cout << "-i <integer>: Solve problem in demo mode" << std::endl;
 	std::cout << "-c <integer>: Number of problem constraints" << std::endl;
 
 	exit(EXIT_SUCCESS);
@@ -230,6 +230,29 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 				exit(EXIT_FAILURE);
 			}
 		}
+		else if (option == "-c")
+		{
+			if (i + 1 < argc)
+			{
+				int num_constraints = atoi(argv[++i]);
+
+				if (num_constraints < 1)
+				{
+					std::cerr << option << ": argument "
+						<< problem_no << " is invalid" << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				else
+				{
+					this->num_constraints = static_cast<unsigned> (num_constraints);
+				}
+			}
+			else
+			{
+				std::cerr << option << " option requires one argument." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
 		else
 		{
 			std::cerr << option << ": unknown option." << std::endl;
@@ -278,4 +301,10 @@ Solver::SolvingMethod UserParameters::get_solving_method() const
 double UserParameters::get_precision() const
 {
 	return this->precision;
+}
+
+
+unsigned int UserParameters::get_num_constrains() const
+{
+	return this->num_constraints;
 }

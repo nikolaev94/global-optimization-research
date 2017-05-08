@@ -2,83 +2,6 @@
 #include "problem_loader.h"
 
 
-ProblemLoader::ProblemLoader() {}
-
-ProblemLoader::~ProblemLoader() {}
-
-
-//void ProblemLoader::set_GKLS_Hard_parameters(unsigned dimension)
-//{
-//	switch (dimension)
-//	{
-//	case 2:
-//		GklsFunction::GKLS_global_dist = 0.9;
-//		GklsFunction::GKLS_global_radius = 0.1;
-//		break;
-//	case 3:
-//		GklsFunction::GKLS_global_dist = 0.9;
-//		GklsFunction::GKLS_global_radius = 0.2;
-//		break;
-//	case 4:
-//		GklsFunction::GKLS_global_dist = 0.9;
-//		GklsFunction::GKLS_global_radius = 0.2;
-//		break;
-//	case 5:
-//		GklsFunction::GKLS_global_dist = 0.66;
-//		GklsFunction::GKLS_global_radius = 0.2;
-//		break;
-//	default:
-//		break;
-//	}
-//}
-
-
-//void ProblemLoader::set_GKLS_Simple_parameters(unsigned dimension)
-//{
-//	switch (dimension)
-//	{
-//	case 2:
-//		GklsFunction::GKLS_global_dist = 0.9;
-//		GklsFunction::GKLS_global_radius = 0.2;
-//		break;
-//	case 3:
-//		GklsFunction::GKLS_global_dist = 0.66;
-//		GklsFunction::GKLS_global_radius = 0.2;
-//		break;
-//	case 4:
-//		GklsFunction::GKLS_global_dist = 0.66;
-//		GklsFunction::GKLS_global_radius = 0.2;
-//		break;
-//	case 5:
-//		GklsFunction::GKLS_global_dist = 0.66;
-//		GklsFunction::GKLS_global_radius = 0.3;
-//		break;
-//	default:
-//		break;
-//	}
-//}
-
-//int ProblemLoader::set_GKLS_class_parameters(const UserParameters& user_parameter)
-//{
-//	GklsFunction::GKLS_dim = user_parameter.get_dimensions();
-//	GklsFunction::GKLS_set_default();
-//
-//	switch (user_parameter.get_function_class())
-//	{
-//	case FunctionClass::GKLS_SIMPLE:
-//		set_GKLS_Simple_parameters(user_parameter.get_dimensions());
-//		break;
-//	case FunctionClass::GKLS_HARD:
-//		set_GKLS_Hard_parameters(user_parameter.get_dimensions());
-//		break;
-//	default:
-//		break;
-//	}
-//
-//	return GklsFunction::GKLS_parameters_check();
-//}
-
-
 gkls::GKLSClass ProblemLoader::map_GKLS_function_class(const FunctionClass& function_class)
 {
 	switch (function_class)
@@ -104,6 +27,8 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 	auto gkls_function_class =
 		map_GKLS_function_class(user_parameters.get_function_class());
 
+	auto num_constrains = user_parameters.get_num_constrains();
+
 	if (!selected_problem_no)
 	{
 		for (unsigned int no = 1; no <= series_size; no++)
@@ -113,16 +38,30 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 			objective->SetFunctionClass(
 				gkls_function_class, user_parameters.get_dimension());
 
-			objective->SetType(gkls::GKLSFuncionType::TD2);
+			objective->SetType(GKLSProblem::DEFAULT_GKLS_FUNCTION_TYPE);
 
 			objective->SetFunctionNumber(no);
 
+			std::vector<GKLSProblem::GKLSFunctionPtr> constrains;
 
-			problems.push_back(OptProblem::OptProblemPtr(new GKLSProblem(objective)));
+			for (unsigned int constraint_no = 0; constraint_no < num_constrains;)
+			{
+				GKLSProblem::GKLSFunctionPtr constraint_function(new gkls::GKLSFunction());
 
-			/*GklsFunction::GklsFunctionPtr gkls_function(
-				new GklsFunction(GklsFunction::D2, no));
-			problems.push_back(OptProblem::OptProblemPtr(new GklsProblem(gkls_function)));*/
+				constraint_function->SetFunctionClass(gkls_function_class,
+					user_parameters.get_dimension());
+
+				constraint_function->SetType(GKLSProblem::DEFAULT_GKLS_FUNCTION_TYPE);
+
+				++constraint_no;
+
+				constraint_function->SetFunctionNumber(no + constraint_no);
+
+				constrains.push_back(constraint_function);
+			}
+
+			problems.push_back(OptProblem::OptProblemPtr(new GKLSProblem(objective,
+				constrains)));
 		}
 	}
 	else
@@ -132,34 +71,32 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 		objective->SetFunctionClass(
 			gkls_function_class, user_parameters.get_dimension());
 
-		objective->SetType(gkls::GKLSFuncionType::TD);
+		objective->SetType(GKLSProblem::DEFAULT_GKLS_FUNCTION_TYPE);
 
-		objective->SetFunctionNumber(1);
-
-
-		std::vector<GKLSProblem::GKLSFunctionPtr> my_list;
+		objective->SetFunctionNumber(selected_problem_no);
 
 
+		std::vector<GKLSProblem::GKLSFunctionPtr> constrains;
 
 
-		GKLSProblem::GKLSFunctionPtr constraint(new gkls::GKLSFunction());
+		for (unsigned int constraint_no = 0; constraint_no < num_constrains;)
+		{
+			GKLSProblem::GKLSFunctionPtr constraint_function(new gkls::GKLSFunction());
 
-		constraint->SetFunctionClass(gkls_function_class, user_parameters.get_dimension());
+			constraint_function->SetFunctionClass(gkls_function_class,
+				user_parameters.get_dimension());
 
-		constraint->SetType(gkls::GKLSFuncionType::TD);
+			constraint_function->SetType(GKLSProblem::DEFAULT_GKLS_FUNCTION_TYPE);
 
-		constraint->SetFunctionNumber(2);
+			++constraint_no;
 
-		my_list.push_back(constraint);
+			constraint_function->SetFunctionNumber(selected_problem_no + constraint_no);
 
+			constrains.push_back(constraint_function);
+		}
 
-		problems.push_back(OptProblem::OptProblemPtr(new GKLSProblem(objective, my_list)));
-
-		/*GklsFunction::GklsFunctionPtr gkls_function(
-			new GklsFunction(GklsFunction::D2, selected_problem_no));
-		problems.push_back(OptProblem::OptProblemPtr(new GklsProblem(gkls_function)));*/
+		problems.push_back(OptProblem::OptProblemPtr(new GKLSProblem(objective, constrains)));
 	}
-	
 }
 
 

@@ -1,14 +1,5 @@
 #include "GKLSProblem.h"
 
-
-//GKLSProblem::GKLSProblem(gkls::GKLSFunction* objective)
-//{
-//	generator.SetObjective(objective);
-//
-//	problem = generator.GenerateProblem(0);
-//}
-
-
 GKLSProblem::~GKLSProblem()
 {
 }
@@ -34,7 +25,14 @@ GKLSProblem::GKLSProblem(GKLSFunctionPtr in_objective,
 		generator.AddConstraint(function.get(), CONSTRAINT_SHIFT_PARAMETER);
 	}
 
-	problem = generator.GenerateProblem(GENERATOR_FLAGS);
+	if (in_constrains.empty())
+	{
+		problem = generator.GenerateProblem(DEFAULT_GENERATOR_FLAGS);
+	}
+	else
+	{
+		problem = generator.GenerateProblem(CONSTRAINTED_PROBLEM_GENERATOR_FLAGS);
+	}
 }
 
 
