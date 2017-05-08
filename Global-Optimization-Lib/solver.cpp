@@ -81,7 +81,6 @@ void Solver::Output::add_problem_solving_result(const MethodData &solved_problem
 
 void Solver::init_tbb(int number_threads)
 {
-	// scheduler.initialize(1);
 	scheduler.initialize(number_threads);
 }
 
@@ -108,7 +107,7 @@ void Solver::Trial::perform_trial(problem_iterator problem)
 	this->admissible = true;
 }
 
-bool Solver::TrialSubset::USE_NEIGHBOUR_NODES = false; // true; ///false; // 
+bool Solver::TrialSubset::USE_NEIGHBOUR_NODES = true; // false; // ///false; // 
 
 void Solver::TrialSubset::calc_subset_min_estimate()
 {

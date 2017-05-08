@@ -24,16 +24,10 @@
     <ClCompile Include="solver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gkls\rnd_gen.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="map\X_to_y.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="map\Y_to_x.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vagris\funcs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GKLSProblem.cpp">
@@ -65,12 +59,6 @@
     <ClInclude Include="solver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gkls\gkls.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gkls\rnd_gen.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="map\map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -81,9 +69,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="examin\problemPar.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vagris\funcs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GKLSProblem.h">

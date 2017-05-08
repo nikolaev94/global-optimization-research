@@ -6,4 +6,5 @@ ContourPlotDrawer::ContourPlotDrawer()
 {
 }
 
-ContourPlotDrawer::~ContourPlotDrawer() {}
+ContourPlotDrawer::~ContourPlotDrawer()
+{}
