@@ -176,7 +176,6 @@
     <ClCompile Include="gkls\gkls_function.cpp" />
     <ClCompile Include="gkls\gkls_random.cpp" />
     <ClCompile Include="Grishagin\grishagin_function.cpp" />
-    <ClCompile Include="infrastructure.cpp" />
     <ClCompile Include="map\X_to_y.cpp" />
     <ClCompile Include="map\Y_to_x.cpp" />
     <ClCompile Include="solver.cpp" />
@@ -190,8 +189,6 @@
     <ClInclude Include="gkls\gkls_function.hpp" />
     <ClInclude Include="gkls\gkls_random.hpp" />
     <ClInclude Include="Grishagin\grishagin_function.hpp" />
-    <ClInclude Include="hill.h" />
-    <ClInclude Include="infrastructure.h" />
     <ClInclude Include="map\map.h" />
     <ClInclude Include="opt_problem.h" />
     <ClInclude Include="solver.h" />

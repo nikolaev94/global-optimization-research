@@ -4,8 +4,8 @@
 #include <iostream>
 #include <fstream>
 
-Solver::Solver(const Input& _input, const problem_list& _problems)
-	: scheduler(tbb::task_scheduler_init::deferred), input(_input), problems(_problems)
+Solver::Solver(const Input& in_input, const problem_list& in_problems)
+	: scheduler(tbb::task_scheduler_init::deferred), input(in_input), problems(in_problems)
 {
 	init_tbb(input.num_threads);
 }
