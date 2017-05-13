@@ -283,8 +283,8 @@ private:
 		static Input input;
 		static unsigned global_iterations_count;
 
-		// static unsigned global_trials_count;
-		static tbb::atomic<unsigned int> global_trials_count;
+		static unsigned global_trials_count;
+		// static tbb::atomic<unsigned int> global_trials_count;
 
 		static void set_method_input(const Input&);
 

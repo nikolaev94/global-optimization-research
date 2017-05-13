@@ -32,7 +32,6 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
-#include <omp.h>
 
 #include "problemPar.hpp"
 
@@ -215,7 +214,7 @@ double TConstrainedProblemBase<FType>::CalculateFunction(const double* y, int fN
           x[i] = (y[i] - mShift[j][i]) / mZoomRatios[j];
         }
         double f = mPFunction[j]->Calculate(x) - (*mQ)[j];
-        double fVal = std::max(f, 0.);
+        double fVal = std::max(f, 0.0);
         resultCoefficient += (*mImprovementCoefficients)[j] * (fVal * fVal * fVal);
       }
       double result = 0;

@@ -100,10 +100,11 @@ std::size_t GKLSProblem::getConstraintsNumber() const
 
 double GKLSProblem::getEuclideanDistance(double *lhs, double *rhs)
 {
-	unsigned int i;
 	double norm = 0.0;
-	for (i = 0; i < problem.GetDimension(); i++)
+	for (int i = 0; i < problem.GetDimension(); i++)
+	{
 		norm += (lhs[i] - rhs[i])*(lhs[i] - rhs[i]);
+	}
 	return sqrt(norm);
 }
 

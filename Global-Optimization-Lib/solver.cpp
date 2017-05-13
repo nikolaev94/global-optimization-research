@@ -602,20 +602,25 @@ void Solver::MethodData::update_solution(const Trial& another_trial)
 
 		if (error < sln_estimator.error)
 		{
-			if (another_trial.z < sln_estimator.zmin)
-			{
+			// if (another_trial.z < sln_estimator.zmin)
+			//{
 				this->sln_estimator.error = error;
 				this->sln_estimator.xmin = another_trial.x;
 				this->sln_estimator.zmin = another_trial.z;
 
+				
+
 				if (error < input.method_eps)
 				{
-					calc_elapsed_time();
+
+					// std::cout << sln_estimator.xmin << " " << sln_estimator.zmin << " " << sln_estimator.error << std::endl;
+
 					this->total_trials_count = MethodData::global_trials_count;
 					this->total_iterations_count = MethodData::global_iterations_count;
 					this->method_finished = true;
+					calc_elapsed_time();
 				}
-			}
+			//}
 		}
 	}
 }
@@ -701,9 +706,9 @@ Solver::Input Solver::MethodData::input;
 
 unsigned Solver::MethodData::global_iterations_count = 0;
 
-// unsigned Solver::MethodData::global_trials_count = 0;
+unsigned Solver::MethodData::global_trials_count = 0;
 
-tbb::atomic<unsigned> Solver::MethodData::global_trials_count;
+// tbb::atomic<unsigned> Solver::MethodData::global_trials_count;
 
 void Solver::MethodData::set_method_input(const Input& user_input)
 {
@@ -994,25 +999,6 @@ void Solver::SimultaneousMethodDataContainer::parallel_perform_iteration()
 		Trial new_trial = target_segment.create_new_trial();
 
 		new_trials.push_back(std::pair<Interval, Trial>(target_segment, new_trial));
-	});
-*/
-	// std::vector<Interval> segments_to_consider(all_segments.begin(), segments_end);
-
-
-	/*tbb::parallel_do(segments_to_consider.begin(), segments_to_consider.end(),
-		[&](const Interval &target_segment) {
-		Trial new_trial = target_segment.create_new_trial();
-
-		new_trials.push_back(std::make_pair(target_segment, new_trial));
-	});*/
-
-
-/*
-	tbb::parallel_do(all_segments.begin(), segments_end,
-		[&new_trials](const Interval &target_segment) {
-		Trial new_trial = target_segment.create_new_trial();
-
-		new_trials.push_back(std::make_pair(target_segment, new_trial));
 	});
 */
 
