@@ -27,9 +27,13 @@ private:
 	void show_usage();
 
 public:
+	static double LEFT_BOUND;
+
+	static double RIGHT_BOUND;
+
 	UserParameters() : dimensions(2), num_workers(2), method_parameter(5.0),
 		num_constraints(0), precision(0.1), series_size(10), problem_no(0),
-		function_class(FunctionClass::GKLS_SIMPLE), solving_method(Solver::DYNAMIC) {}
+		function_class(FunctionClass::GKLS_SIMPLE), solving_method(Solver::SEQUENTIAL) {}
 
 	void parse_arguments_from_command_line(int argc, char* argv[]);
 	unsigned int get_num_constrains() const;

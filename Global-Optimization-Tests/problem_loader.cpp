@@ -131,11 +131,6 @@ void ProblemLoader::load_vagris_series(const UserParameters& user_parameters,
 			}
 
 			problems.push_back(OptProblem::OptProblemP(new VagrisProblem(objective, constrains)));
-
-			/*GrishaginFunction::GrishaginFunctionPtr vagris_function(
-				new GrishaginFunction(no));
-			problems.push_back(OptProblem::OptProblemPtr(
-				new GrishaginProblem(vagris_function)));*/
 		}
 	}
 	else
@@ -158,11 +153,6 @@ void ProblemLoader::load_vagris_series(const UserParameters& user_parameters,
 		}
 
 		problems.push_back(OptProblem::OptProblemP(new VagrisProblem(objective, constrains)));
-
-		/*GrishaginFunction::GrishaginFunctionPtr vagris_function(
-			new GrishaginFunction(selected_problem_no));
-		problems.push_back(OptProblem::OptProblemPtr(
-			new GrishaginProblem(vagris_function)));*/
 	}
 }
 

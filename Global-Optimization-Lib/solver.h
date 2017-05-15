@@ -51,18 +51,21 @@ public:
 		double left, right;
 		double method_eps, method_param;
 		unsigned int num_threads;
+		unsigned int problems_dimension;
 		SolvingMethod solving_method;
 
 		Input() :
 			left(0.0), right(1.0), method_eps(1.e-3), method_param(3.0),
-			num_threads(1), solving_method(SolvingMethod::SEQUENTIAL) {}
+			num_threads(1), problems_dimension(2),
+			solving_method(SolvingMethod::SEQUENTIAL) {}
 
 		Input(double in_left, double in_right, double in_method_eps,
 			double in_method_param, unsigned int in_num_threads,
+			unsigned int in_problems_dimension = 2,
 			SolvingMethod in_solving_method = SolvingMethod::SEQUENTIAL) :
 			left(in_left), right(in_right), method_eps(in_method_eps),
-			method_param(in_method_param),
-			num_threads(in_num_threads), solving_method(in_solving_method) {}
+			method_param(in_method_param), num_threads(in_num_threads),
+			problems_dimension(in_problems_dimension), solving_method(in_solving_method) {}
 	};
 
 	struct ProblemSolvingResult
@@ -157,10 +160,9 @@ private:
 	{
 		/*
 		 * Use only neighbour trials to calculate lower lip const
-		 * This optimization can be used only for one-function problems
 		 */
 		static bool USE_NEIGHBOUR_NODES;
-
+		
 		std::set<Trial> subset;
 		double lip_const;
 		double min_estimator;
@@ -168,9 +170,11 @@ private:
 
 		double method_parameter;
 
-		TrialSubset() : lip_const(1.0), min_estimator(0.0) {}
-		TrialSubset(const std::set<Trial>& in_subset) : subset (in_subset),
-			lip_const(1.0), min_estimator(0.0) {}
+		TrialSubset(): lip_const(1.0), min_estimator(0.0) {}
+
+		/*TrialSubset(const std::set<Trial>& in_subset) : subset (in_subset),
+			lip_const(1.0), min_estimator(0.0) {}*/
+
 		void insert(const Trial& trial) { this->subset.insert(trial); }
 
 		bool check_and_set_zero();
@@ -182,6 +186,8 @@ private:
 
 		void calc_subset_min_estimate();
 	private:
+		unsigned int dimension;
+
 		double get_subset_lip_const_lower_estimation(const Trial&);
 
 		double calc_max_difference_between_neighbours(const Trial&);
@@ -284,11 +290,18 @@ private:
 		static unsigned global_iterations_count;
 
 		static unsigned global_trials_count;
-		// static tbb::atomic<unsigned int> global_trials_count;
+
+		static tbb::mutex mu;
+		//static tbb::atomic<unsigned int> global_trials_count;
 
 		static void set_method_input(const Input&);
 
 		static void perform_iteration(MethodData&);
+
+
+		//Trial get_best_interval();
+
+		//void perform_iteration();
 
 		//bool operator==(const MethodData&) const;
 

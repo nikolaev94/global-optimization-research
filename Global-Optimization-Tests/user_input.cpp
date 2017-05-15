@@ -1,6 +1,11 @@
 
 #include "user_input.h"
 
+
+double UserParameters::LEFT_BOUND = 0.0f;
+
+double UserParameters::RIGHT_BOUND = 1.0f;
+
 void UserParameters::show_usage()
 {
 	std::cout << "Usage: Global-Optimization-Tests.exe [options]" << std::endl;
@@ -258,6 +263,11 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 			std::cerr << option << ": unknown option." << std::endl;
 			exit(EXIT_FAILURE);
 		}
+	}
+
+	if (function_class == FunctionClass::VAGRIS)
+	{
+		dimensions = 2;
 	}
 }
 
