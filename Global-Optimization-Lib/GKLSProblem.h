@@ -39,11 +39,16 @@ private:
 
 	void linearTransform(double point[]);
 
+	void reverseLinearTransform(double point[]);
+
 	void mapScalarToNDimSpace(double scalar, double point[]);
 
-	double getEuclideanDistance(double* lhs, double* rhs);
+	void mapNDimVectorToScalar(double point[], double* scalar);
+
+	double getDistance(double* lhs, double* rhs);
 
 public:
+
 	static const gkls::GKLSFuncionType DEFAULT_GKLS_FUNCTION_TYPE = gkls::GKLSFuncionType::TD2;
 
 	GKLSProblem(GKLSFunctionP);

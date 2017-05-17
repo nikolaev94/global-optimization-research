@@ -96,6 +96,12 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 		}
 
 		problems.push_back(OptProblem::OptProblemP(new GKLSProblem(objective, constrains)));
+
+
+		for (auto& problem : problems)
+		{
+			problem->
+		}
 	}
 }
 

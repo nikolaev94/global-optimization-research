@@ -41,7 +41,7 @@ void GKLSProblem::linearTransform(double point[])
 
 	problem.GetBounds(left_bounds, right_bounds);
 
-	for (unsigned int i = 0; i < problem.GetDimension() ; i++)
+	for (unsigned int i = 0; i < problem.GetDimension(); i++)
 	{
 		point[i] = point[i] * (right_bounds[i] - left_bounds[i])
 			+ (right_bounds[i] + left_bounds[i]) / 2;
@@ -52,11 +52,25 @@ void GKLSProblem::linearTransform(double point[])
 }
 
 
+void GKLSProblem::reverseLinearTransform(double point[])
+{
+
+}
+
+
 void GKLSProblem::mapScalarToNDimSpace(double x, double point[])
 {
 	mapd(x, PRECISION, point, problem.GetDimension(), KEY);
 
 	linearTransform(point);
+}
+
+
+void GKLSProblem::mapNDimVectorToScalar(double point[], double *x)
+{
+	reverseLinearTransform(point);
+
+	xyd(x, PRECISION, point, problem.GetDimension());
 }
 
 
@@ -98,14 +112,15 @@ std::size_t GKLSProblem::getConstraintsNumber() const
 }
 
 
-double GKLSProblem::getEuclideanDistance(double *lhs, double *rhs)
+double GKLSProblem::getDistance(double *lhs, double *rhs)
 {
-	double norm = 0.0;
+	double 
+	/*double norm = 0.0;
 	for (int i = 0; i < problem.GetDimension(); i++)
 	{
 		norm += (lhs[i] - rhs[i])*(lhs[i] - rhs[i]);
 	}
-	return sqrt(norm);
+	return sqrt(norm);*/
 }
 
 
@@ -119,7 +134,7 @@ double GKLSProblem::getReferenceMinError(double scalar)
 
 	problem.GetOptimumPoint(min_point);
 
-	double distance = getEuclideanDistance(trial_point, min_point);
+	double distance = getDistance(trial_point, min_point);
 
 	delete[] min_point;
 
