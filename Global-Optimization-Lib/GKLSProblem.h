@@ -25,7 +25,7 @@ private:
 	const double CONSTRAINT_SHIFT_PARAMETER = 0.01f;
 
 	const int CONSTRAINTED_PROBLEM_GENERATOR_FLAGS =
-		IMPROVE_OBJECTIVE | TOTAL_DELTA; //| ZOOM | SHIFT;
+		IMPROVE_OBJECTIVE + TOTAL_DELTA; //| ZOOM | SHIFT;
 
 	const int DEFAULT_GENERATOR_FLAGS = 0;
 
@@ -49,7 +49,8 @@ private:
 
 public:
 
-	static const gkls::GKLSFuncionType DEFAULT_GKLS_FUNCTION_TYPE = gkls::GKLSFuncionType::TD2;
+	static const gkls::GKLSFuncionType DEFAULT_GKLS_FUNCTION_TYPE =
+		gkls::GKLSFuncionType::TD;
 
 	GKLSProblem(GKLSFunctionP);
 
@@ -66,6 +67,8 @@ public:
 	virtual double getReferenceMinimum() override;
 
 	virtual unsigned getDimention() override;
+
+	virtual void mapScalarToVector(double scalar, std::vector<double>& out_point) override;
 };
 
 #endif

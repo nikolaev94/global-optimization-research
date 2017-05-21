@@ -73,11 +73,9 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 
 		objective->SetType(GKLSProblem::DEFAULT_GKLS_FUNCTION_TYPE);
 
-		objective->SetFunctionNumber(selected_problem_no);
-
+		auto err =  objective->SetFunctionNumber(selected_problem_no);
 
 		std::vector<GKLSProblem::GKLSFunctionP> constrains;
-
 
 		for (unsigned int constraint_no = 0; constraint_no < num_constrains;)
 		{
@@ -96,12 +94,6 @@ void ProblemLoader::load_GKLS_series(const UserParameters& user_parameters,
 		}
 
 		problems.push_back(OptProblem::OptProblemP(new GKLSProblem(objective, constrains)));
-
-
-		for (auto& problem : problems)
-		{
-			problem->
-		}
 	}
 }
 

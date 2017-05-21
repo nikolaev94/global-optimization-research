@@ -81,7 +81,6 @@ double VagrisProblem::getContraintValue(std::size_t number, double scalar)
 std::size_t VagrisProblem::getConstraintsNumber() const
 {
 	return problem.GetConstraintsNumber();
-	// return constrains.size();
 }
 
 
@@ -108,6 +107,8 @@ double VagrisProblem::getReferenceMinError(double scalar)
 
 	problem.GetOptimumPoint(min_point);
 
+	std::cout << min_point[0] << " " << min_point[1] << " z:" << problem.CalculateFunction(min_point, 0) << std::endl;
+
 	double distance = getEuclideanDistance(trial_point, min_point);
 
 	delete[] min_point;
@@ -127,4 +128,19 @@ double VagrisProblem::getReferenceMinimum()
 unsigned int VagrisProblem::getDimention()
 {
 	return problem.GetDimension();
+}
+
+
+void VagrisProblem::mapScalarToVector(double scalar, std::vector<double>& out_point)
+{
+	double* point = new double[problem.GetDimension()];
+
+	mapScalarToNDimSpace(scalar, point);
+
+	for (int i = 0; i < problem.GetDimension(); i++)
+	{
+		out_point.push_back(point[i]);
+	}
+
+	delete[] point;
 }

@@ -135,7 +135,7 @@
       <Cpp0xSupport>true</Cpp0xSupport>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <DisableCilkKeywords>true</DisableCilkKeywords>
+      <DisableCilkKeywords>false</DisableCilkKeywords>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

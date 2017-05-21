@@ -46,6 +46,19 @@ public:
 		SEQUENTIAL, DYNAMIC, SIMULTANEOUS
 	};
 
+	struct TrialInfo
+	{
+		double trial_scalar;
+		std::vector<double> trial_point;
+		double func_value;
+
+		TrialInfo(problem_iterator solved_problem, const Trial& in_trial)
+			: trial_scalar(in_trial.x), func_value(in_trial.z)
+		{
+			(*solved_problem)->mapScalarToVector(trial_scalar, trial_point);
+		}
+	};
+
 	struct Input
 	{
 		double left, right;
@@ -65,18 +78,20 @@ public:
 			SolvingMethod in_solving_method = SolvingMethod::SEQUENTIAL) :
 			left(in_left), right(in_right), method_eps(in_method_eps),
 			method_param(in_method_param), num_threads(in_num_threads),
-			problems_dimension(in_problems_dimension), solving_method(in_solving_method) {}
+			problems_dimension(in_problems_dimension),
+			solving_method(in_solving_method) {}
 	};
 
 	struct ProblemSolvingResult
 	{
 		problem_iterator solved_problem;
 
+		std::vector<TrialInfo> trials_info;
 		double xmin;
 		double zmin;
 		double error;
 		bool correctness;
-		unsigned trials;
+		unsigned trials_num;
 		double elapsed_time;
 
 		/*
@@ -92,12 +107,12 @@ public:
 		ProblemSolvingResult(const MethodData& method_data)
 			: solved_problem(method_data.problem)
 		{
-			// this->iterations = method_data.iterations_count;
+			method_data.get_trials_info(trials_info);
 
 			this->xmin = method_data.sln_estimator.xmin;
 			this->zmin = method_data.sln_estimator.zmin;
 			this->error = method_data.sln_estimator.error;
-			this->trials = method_data.trials_count;
+			this->trials_num = method_data.trials_count;
 			this->iterations = method_data.total_iterations_count;
 			this->total_trials = method_data.total_trials_count;
 			this->elapsed_time = method_data.elapsed_time_in_seconds;
@@ -133,6 +148,7 @@ public:
 		void dump_results_to_file(const std::string&);
 		void dump_error_metrics_by_trials_to_file(const std::string&);
 		void dump_solved_problem_portion_by_trials_to_file(const std::string&);
+		void dump_method_trials_to_file(const std::string&);
 	};
 
 private:
@@ -150,7 +166,7 @@ private:
 		Trial(const Trial& src) : x(src.x), z(src.z), nu(src.nu),
 			admissible(src.admissible) {}
 		
-		Trial(double _x, double _z, unsigned _nu) : x(_x), z(_z), nu(_nu) {}
+		Trial(double in_x, double in_z, unsigned in_nu) : x(in_x), z(in_z), nu(in_nu) {}
 
 		void perform_trial(problem_iterator problem);
 		bool operator< (const Trial& comp) const { return this->x < comp.x; }
@@ -313,6 +329,8 @@ private:
 
 		SolutionEstimator sln_estimator;
 		problem_iterator problem;
+
+		void get_trials_info(std::vector<TrialInfo> &info) const;
 
 		bool do_update_interval_charateristics = false;
 

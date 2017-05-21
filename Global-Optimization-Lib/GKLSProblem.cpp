@@ -39,15 +39,23 @@ void GKLSProblem::linearTransform(double point[])
 
 	double* right_bounds = new double[problem.GetDimension()];
 
-	problem.GetBounds(left_bounds, right_bounds);
+
+	for (int i = 0; i < problem.GetDimension(); i++)
+	{
+		point[i] = point[i] * 2.0;
+	}
+
+
+	/*problem.GetBounds(left_bounds, right_bounds);
 
 	for (unsigned int i = 0; i < problem.GetDimension(); i++)
 	{
 		point[i] = point[i] * (right_bounds[i] - left_bounds[i])
 			+ (right_bounds[i] + left_bounds[i]) / 2;
-	}
+	}*/
 
 	delete[] left_bounds;
+
 	delete[] right_bounds;
 }
 
@@ -55,6 +63,33 @@ void GKLSProblem::linearTransform(double point[])
 void GKLSProblem::reverseLinearTransform(double point[])
 {
 
+	double* left_bounds = new double[problem.GetDimension()];
+
+	double* right_bounds = new double[problem.GetDimension()];
+
+
+	for (int i = 0; i < problem.GetDimension(); i++)
+	{
+		point[i] = point[i] * 0.5;
+	}
+
+	delete[] left_bounds;
+	delete[] right_bounds;
+
+	/*double* left_bounds = new double[problem.GetDimension()];
+
+	double* right_bounds = new double[problem.GetDimension()];
+
+	problem.GetBounds(left_bounds, right_bounds);
+
+	for (unsigned int i = 0; i < problem.GetDimension(); i++)
+	{
+		point[i] = (point[i] - (left_bounds[i] + right_bounds[i]) / 2.0)
+			/ (right_bounds[i] - left_bounds[i]);
+	}
+
+	delete[] left_bounds;
+	delete[] right_bounds;*/
 }
 
 
@@ -114,19 +149,18 @@ std::size_t GKLSProblem::getConstraintsNumber() const
 
 double GKLSProblem::getDistance(double *lhs, double *rhs)
 {
-	double 
-	/*double norm = 0.0;
+	double norm = 0.0;
 	for (int i = 0; i < problem.GetDimension(); i++)
 	{
 		norm += (lhs[i] - rhs[i])*(lhs[i] - rhs[i]);
 	}
-	return sqrt(norm);*/
+	return sqrt(norm);
 }
 
 
 double GKLSProblem::getReferenceMinError(double scalar)
 {
-	double* trial_point = new double[problem.GetDimension()];
+	/*double* trial_point = new double[problem.GetDimension()];
 
 	mapScalarToNDimSpace(scalar, trial_point);
 
@@ -140,6 +174,26 @@ double GKLSProblem::getReferenceMinError(double scalar)
 
 	delete[] trial_point;
 
+	return distance;*/
+
+
+	double* min_point = new double[problem.GetDimension()];
+
+	auto err = problem.GetOptimumPoint(min_point);
+
+	std::cout << min_point[0] << " " << min_point[1] << std::endl;
+
+
+	double* trial_point = new double[problem.GetDimension()];
+
+	mapScalarToNDimSpace(scalar, trial_point);
+
+	double distance = getDistance(trial_point, min_point);
+
+	delete[] trial_point;
+
+	delete[] min_point;
+
 	return distance;
 }
 
@@ -152,7 +206,33 @@ double GKLSProblem::getReferenceMinimum()
 
 	double min_scalar = 0.0;
 
-	xyd(&min_scalar, PRECISION, min_point, problem.GetDimension());
+	std::cout << min_point[0] << ";" << min_point[1] << std::endl;
+
+	std::cout << min_scalar << std::endl;
+
+	mapNDimVectorToScalar(min_point, &min_scalar);
+
+
+	std::cout << min_point[0] << ";" << min_point[1] << std::endl;
+
+	std::cout << min_scalar << std::endl;
+
+	/*double min_scalar1 = 1.0;
+
+	double min_ptn[] = { 0.0, 0.0 };
+
+	xyd(&min_scalar1, PRECISION, min_ptn, problem.GetDimension());
+
+
+	std::cout << min_ptn[0] << ";" << min_ptn[1] << std::endl;
+
+	std::cout << min_scalar1 << std::endl;*/
+
+
+	/*std::cout << min_point[0] << ";" << min_point[1] << std::endl;
+
+	std::cout << min_scalar << std::endl;*/
+
 
 	return min_scalar;
 }
@@ -162,4 +242,20 @@ unsigned int GKLSProblem::getDimention()
 {
 	return problem.GetDimension();
 }
+
+void GKLSProblem::mapScalarToVector(double scalar, std::vector<double>& out_point)
+{
+	double* point = new double[problem.GetDimension()];
+
+	mapScalarToNDimSpace(scalar, point);
+
+	for (int i = 0; i < problem.GetDimension(); i++)
+	{
+		out_point.push_back(point[i]);
+	}
+
+	delete[] point;
+}
+
+
 

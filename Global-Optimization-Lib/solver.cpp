@@ -21,11 +21,11 @@ void Solver::Output::dump_results_to_file(const std::string& filename)
 		<< "Problem trials" << ';' << "Iterations" << ';'
 		<< "Total trials" << ';' << "Time" << ';' << std::endl;
 
-	for (const auto& res : results)
+	for (const auto& result : results)
 	{
-		ofstream << res.xmin << ';' << res.zmin << ';' << res.error << ';'
-			<< res.trials << ';' << res.iterations << ';'
-			<< res.total_trials << ';' << res.elapsed_time
+		ofstream << result.xmin << ';' << result.zmin << ';' << result.error << ';'
+			<< result.trials_num << ';' << result.iterations << ';'
+			<< result.total_trials << ';' << result.elapsed_time
 			<< ';' << std::endl;
 	}
 
@@ -67,6 +67,29 @@ void Solver::Output::dump_solved_problem_portion_by_trials_to_file(const std::st
 	for (const auto& portion: this->metrics.solved_problems_portion_by_trials)
 	{
 		ofstream << portion.first << ';' << portion.second << std::endl;
+	}
+
+	ofstream.close();
+}
+
+
+void Solver::Output::dump_method_trials_to_file(const std::string& filename)
+{
+	std::ofstream ofstream(filename);
+
+	for (const auto& result : results)
+	{
+		for (const auto& trial_info : result.trials_info)
+		{
+			ofstream << trial_info.trial_scalar << " x = (";
+
+			for (auto component : trial_info.trial_point)
+			{
+				ofstream << component << ";";
+			}
+
+			ofstream << ") z = " << trial_info.func_value << std::endl;
+		}
 	}
 
 	ofstream.close();
@@ -458,7 +481,7 @@ double Solver::Interval::sgn(double arg) const
 
 
 
-Solver::MethodData::MethodData(problem_iterator _problem) : problem(_problem)
+Solver::MethodData::MethodData(problem_iterator in_problem) : problem(in_problem)
 {
 	starting_stamp = tbb::tick_count::now();
 
@@ -595,8 +618,8 @@ void Solver::MethodData::update_solution(const Trial& another_trial)
 
 		if (error < sln_estimator.error)
 		{
-			//if (another_trial.z < sln_estimator.zmin)
-			//{
+			if (another_trial.z < sln_estimator.zmin)
+			{
 				this->sln_estimator.error = error;
 				this->sln_estimator.xmin = another_trial.x;
 				this->sln_estimator.zmin = another_trial.z;
@@ -609,7 +632,7 @@ void Solver::MethodData::update_solution(const Trial& another_trial)
 
 					calc_elapsed_time();
 				}
-			//}
+			}
 		}
 	}
 }
@@ -649,6 +672,8 @@ void Solver::MethodData::perform_iteration(MethodData &problem_data)
 		problem_data.update_interval_charateristics();
 	}
 }
+
+
 
 //
 //void Solver::MethodData::perform_iteration()
@@ -813,6 +838,15 @@ void Solver::MethodData::parallel_perform_iteration()
 void Solver::MethodData::calc_elapsed_time()
 {
 	elapsed_time_in_seconds = (tbb::tick_count::now() - starting_stamp).seconds();
+}
+
+
+void Solver::MethodData::get_trials_info(std::vector<TrialInfo>& info) const
+{
+	for (const auto& trial : trials)
+	{
+		info.emplace_back(problem, trial);
+	}
 }
 
 

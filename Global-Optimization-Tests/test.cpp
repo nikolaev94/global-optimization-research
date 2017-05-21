@@ -16,19 +16,6 @@
 
 int main(int argc, char* argv[])
 {
-	//MPI_Init(&argc, &argv);
-	int rank = 0;
-	int size = 0;
-
-	//MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-	//MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-
-	std::cout << "Rank: " << rank << std::endl;
-
-	std::cout << "Size: " << size << std::endl;
-
 	UserParameters user_parameters;
 
 	user_parameters.parse_arguments_from_command_line(argc, argv);
@@ -58,8 +45,8 @@ int main(int argc, char* argv[])
 
 	output.dump_solved_problem_portion_by_trials_to_file(prefix + "portions.csv");
 
-	//MPI_Finalize();
-	
+	output.dump_method_trials_to_file(prefix + "trials.txt");
+
 	/*
 	double xray[50], yray[50], zmat[50][50];
 	int n = 50, i, j;
