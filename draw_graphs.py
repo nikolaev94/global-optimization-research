@@ -80,7 +80,7 @@ if matchobj_first.group(3) == 'portions':
         dynamic_portions_values = get_portions_per_trials_values(second_csv)
 
     plt.plot(dynamic_portions_values['x'], dynamic_portions_values['y'], 'b', label='Dynamic')
-    plt.plot(simultaneous_portions_values['x'], simultaneous_portions_values['y'], 'g', label='Simultaneous')
+    plt.plot(simultaneous_portions_values['x'], simultaneous_portions_values['y'], 'g', linestyle='--', label='Simultaneous')
 
     plt.title('Solved problem portions per trials')
     fig = plt.gcf()
@@ -102,7 +102,7 @@ else: # comparing errors
 
     plt.figure(1)
     plt.plot(dynamic_errors_values['x'], dynamic_errors_values['y_avg'], 'b', label='Dynamic')
-    plt.plot(simultaneous_errors_values['x'], simultaneous_errors_values['y_avg'], 'g', label='Simultaneous')
+    plt.plot(simultaneous_errors_values['x'], simultaneous_errors_values['y_avg'], 'g', linestyle='--', label='Simultaneous')
 
     plt.title('Average errors per trials')
     fig = plt.gcf()
@@ -113,7 +113,7 @@ else: # comparing errors
 
     plt.figure(2)
     plt.plot(dynamic_errors_values['x'], dynamic_errors_values['y_max'], 'b', label='Dynamic')
-    plt.plot(simultaneous_errors_values['x'], simultaneous_errors_values['y_max'], 'g', label='Simultaneous')
+    plt.plot(simultaneous_errors_values['x'], simultaneous_errors_values['y_max'], 'g', linestyle='--', label='Simultaneous')
 
     plt.title('Max errors per trials')
     fig = plt.gcf()
