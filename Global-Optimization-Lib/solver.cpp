@@ -29,7 +29,7 @@ void Solver::Output::dump_results_to_file(const std::string& filename)
 
 	// << std::endl;
 
-	ofstream << "Calculated xmin" << ';' << "Reference min" << ';' << std::endl;
+	ofstream << "Calculated min" << ';' << "Reference min" << ';' << std::endl;
 
 	for (const auto& result : results)
 	{
