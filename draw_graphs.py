@@ -123,24 +123,3 @@ else: # comparing errors
     plt.grid(True)
 
     plt.show()
-
-
-
-'''
-first = get_axis_values(sys.argv[1])
-
-second = get_axis_values(sys.argv[2])
-'''
-'''
-plt.plot(first['x'], first['y'], 'b', label='Dynamic')
-plt.plot(second['x'], second['y'], 'g', label='Simult')
-
-plt.legend()
-
-plt.grid(True)
-
-plt.show()
-'''
-#plt.plot([1,2,3,4])
-#plt.ylabel('some numbers')
-#plt.show()

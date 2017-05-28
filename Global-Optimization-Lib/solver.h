@@ -12,16 +12,16 @@
 #include <unordered_map>
 #include <unordered_set>
 
-
-#include <tbb/concurrent_vector.h>
-#include <tbb/parallel_do.h>
-#include <tbb/parallel_sort.h>
-#include <tbb/mutex.h>
-#include <tbb/spin_mutex.h>
-#include <tbb/task_scheduler_init.h>
-#include <tbb/tick_count.h>
-#include <tbb/parallel_for_each.h>
-#include <tbb/parallel_reduce.h>
+//
+//#include <tbb/concurrent_vector.h>
+//#include <tbb/parallel_do.h>
+//#include <tbb/parallel_sort.h>
+//#include <tbb/mutex.h>
+//#include <tbb/spin_mutex.h>
+//#include <tbb/task_scheduler_init.h>
+//#include <tbb/tick_count.h>
+//#include <tbb/parallel_for_each.h>
+//#include <tbb/parallel_reduce.h>
 
 
 class Solver
@@ -327,9 +327,11 @@ private:
 
 		static unsigned int global_trials_count;
 
-		static tbb::mutex mu;
-
 		//static tbb::atomic<unsigned int> global_trials_count;
+
+		
+
+		// static tbb::mutex mu;
 
 		static void set_method_input(const Input&);
 
@@ -391,8 +393,8 @@ private:
 	private:
 		static Input input;
 
-		tbb::tick_count starting_stamp;
-		tbb::tick_count finishing_stamp;
+		//tbb::tick_count starting_stamp;
+		//tbb::tick_count finishing_stamp;
 
 		bool method_finished = false;
 
@@ -524,9 +526,6 @@ private:
 
 		void take_problem_from_queue();
 
-
-		//std::list<problem_iterator> active_solving_problems1;
-
 		std::list<std::reference_wrapper<MethodData>> active_solving_problems;
 
 		std::queue<problem_iterator> problem_queue;
@@ -536,7 +535,7 @@ private:
 	Input input;
 	problem_list problems;
 
-	tbb::task_scheduler_init scheduler;
+	//tbb::task_scheduler_init scheduler;
 	void init_tbb(int number_threads = 1);
 
 	typedef std::set<Interval>::const_iterator target_interval;
