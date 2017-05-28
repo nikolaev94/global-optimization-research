@@ -21,7 +21,7 @@ public:
 	typedef std::shared_ptr<vagrish::GrishaginFunction> VagrisFunctionP;
 private:
 	static const int KEY = 1;
-	static const int PRECISION = 10;
+	static const int PRECISION = 14;
 
 	VagrisFunctionP objective;
 
@@ -40,7 +40,11 @@ private:
 
 	void mapScalarToNDimSpace(double scalar, double point[]);
 
+	void mapNDimVectorToScalar(double point[], double* scalar);
+
 	void linearTransform(double point[]);
+
+	void reverseLinearTransform(double point[]);
 
 	double getEuclideanDistance(double lhs[], double rhs[]);
 

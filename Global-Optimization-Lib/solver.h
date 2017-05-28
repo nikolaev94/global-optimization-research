@@ -24,10 +24,6 @@
 #include <tbb/parallel_reduce.h>
 
 
-//#include <mpi.h>
-
-
-
 class Solver
 {
 private:
@@ -46,16 +42,19 @@ public:
 		SEQUENTIAL, DYNAMIC, SIMULTANEOUS
 	};
 
-	struct TrialInfo
+	struct NodeInfo
 	{
-		double trial_scalar;
-		std::vector<double> trial_point;
+		double node_scalar;
+		std::vector<double> node_point;
 		double func_value;
 
-		TrialInfo(problem_iterator solved_problem, const Trial& in_trial)
-			: trial_scalar(in_trial.x), func_value(in_trial.z)
+		NodeInfo() :
+			node_scalar(0.0), func_value(0.0) {}
+
+		NodeInfo(problem_iterator solved_problem, const Trial& in_trial)
+			: node_scalar(in_trial.x), func_value(in_trial.z)
 		{
-			(*solved_problem)->mapScalarToVector(trial_scalar, trial_point);
+			(*solved_problem)->mapScalarToVector(node_scalar, node_point);
 		}
 	};
 
@@ -67,32 +66,54 @@ public:
 		unsigned int problems_dimension;
 		SolvingMethod solving_method;
 
+		/*
+		* Use only neighbour trials to calculate lower lip const
+		*/
+		bool use_neighbour_nodes_optimization;
+		
+
 		Input() :
 			left(0.0), right(1.0), method_eps(1.e-3), method_param(3.0),
 			num_threads(1), problems_dimension(2),
-			solving_method(SolvingMethod::SEQUENTIAL) {}
+			solving_method(SolvingMethod::SEQUENTIAL),
+			use_neighbour_nodes_optimization(true) {}
 
 		Input(double in_left, double in_right, double in_method_eps,
 			double in_method_param, unsigned int in_num_threads,
 			unsigned int in_problems_dimension = 2,
-			SolvingMethod in_solving_method = SolvingMethod::SEQUENTIAL) :
+			SolvingMethod in_solving_method = SolvingMethod::SEQUENTIAL,
+			bool neighbour_nodes_optimization = true,
+			bool dump_trial_nodes = false) :
 			left(in_left), right(in_right), method_eps(in_method_eps),
 			method_param(in_method_param), num_threads(in_num_threads),
 			problems_dimension(in_problems_dimension),
-			solving_method(in_solving_method) {}
+			solving_method(in_solving_method),
+			use_neighbour_nodes_optimization(neighbour_nodes_optimization) {}
+
+		Input(const Input &input) : left(input.left), right(input.right),
+			method_eps(input.method_eps), method_param(input.method_param),
+			num_threads(input.num_threads), problems_dimension(input.problems_dimension),
+			solving_method(input.solving_method),
+			use_neighbour_nodes_optimization(input.use_neighbour_nodes_optimization) {}
 	};
 
 	struct ProblemSolvingResult
 	{
 		problem_iterator solved_problem;
 
-		std::vector<TrialInfo> trials_info;
+		std::vector<NodeInfo> trials_info;
+
+		NodeInfo calculated_solution;
+		NodeInfo reference_solution;
+
 		double xmin;
 		double zmin;
 		double error;
-		bool correctness;
+
 		unsigned trials_num;
 		double elapsed_time;
+
+		//bool correctness;
 
 		/*
 		 * Total number of algorithm iterations completed before the problem was resolved
@@ -103,20 +124,29 @@ public:
 		 */
 		unsigned total_trials;
 		
-		ProblemSolvingResult() : correctness(true) {}
+		//ProblemSolvingResult() : correctness(true) {}
+
 		ProblemSolvingResult(const MethodData& method_data)
 			: solved_problem(method_data.problem)
 		{
 			method_data.get_trials_info(trials_info);
 
+			method_data.get_calculated_solution(calculated_solution);
+
+			method_data.get_reference_solution(reference_solution);
+
 			this->xmin = method_data.sln_estimator.xmin;
 			this->zmin = method_data.sln_estimator.zmin;
 			this->error = method_data.sln_estimator.error;
+
+
+
 			this->trials_num = method_data.trials_count;
 			this->iterations = method_data.total_iterations_count;
 			this->total_trials = method_data.total_trials_count;
 			this->elapsed_time = method_data.elapsed_time_in_seconds;
-			this->correctness = true;
+
+			//this->correctness = true;
 		}
 	};
 
@@ -137,7 +167,7 @@ public:
 	struct Output
 	{
 		double elapsed_time;
-		const Input& original_input;
+		Input original_input;
 		std::list<ProblemSolvingResult> results;
 		MetricsContainer metrics;
 
@@ -152,8 +182,6 @@ public:
 	};
 
 private:
-	
-
 
 	struct Trial
 	{
@@ -162,7 +190,7 @@ private:
 		bool admissible;
 		
 		Trial() {}
-		Trial(double _x) : x(_x) {}
+		Trial(double in_x) : x(in_x) {}
 		Trial(const Trial& src) : x(src.x), z(src.z), nu(src.nu),
 			admissible(src.admissible) {}
 		
@@ -173,12 +201,7 @@ private:
 	};
 
 	struct TrialSubset
-	{
-		/*
-		 * Use only neighbour trials to calculate lower lip const
-		 */
-		static bool USE_NEIGHBOUR_NODES;
-		
+	{	
 		std::set<Trial> subset;
 		double lip_const;
 		double min_estimator;
@@ -187,9 +210,6 @@ private:
 		double method_parameter;
 
 		TrialSubset(): lip_const(1.0), min_estimator(0.0) {}
-
-		/*TrialSubset(const std::set<Trial>& in_subset) : subset (in_subset),
-			lip_const(1.0), min_estimator(0.0) {}*/
 
 		void insert(const Trial& trial) { this->subset.insert(trial); }
 
@@ -302,17 +322,24 @@ private:
 
 	struct MethodData
 	{
-		static Input input;
-		static unsigned global_iterations_count;
+		
+		static unsigned int global_iterations_count;
 
-		static unsigned global_trials_count;
+		static unsigned int global_trials_count;
 
 		static tbb::mutex mu;
+
 		//static tbb::atomic<unsigned int> global_trials_count;
 
 		static void set_method_input(const Input&);
 
 		static void perform_iteration(MethodData&);
+
+		static unsigned int get_problem_dimention();
+
+		static unsigned int get_workers_num();
+
+		static bool do_use_neighbour_nodes();
 
 
 		//Trial get_best_interval();
@@ -328,11 +355,16 @@ private:
 		double elapsed_time_in_seconds = 0.0;
 
 		SolutionEstimator sln_estimator;
+
 		problem_iterator problem;
 
-		void get_trials_info(std::vector<TrialInfo> &info) const;
-
 		bool do_update_interval_charateristics = false;
+
+		void get_trials_info(std::vector<NodeInfo> &info) const;
+
+		void get_calculated_solution(NodeInfo&) const;
+
+		void get_reference_solution(NodeInfo&) const;
 
 		void update_interval_charateristic(Interval&);
 
@@ -357,6 +389,8 @@ private:
 		MethodData(problem_iterator);
 
 	private:
+		static Input input;
+
 		tbb::tick_count starting_stamp;
 		tbb::tick_count finishing_stamp;
 
@@ -480,7 +514,7 @@ private:
 		{
 			enqueue_problems(in_problems);
 
-			init_workers(MethodData::input.num_threads);
+			init_workers(MethodData::get_workers_num());
 		}
 	private:
 

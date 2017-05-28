@@ -18,6 +18,8 @@ void UserParameters::show_usage()
 	std::cout << "-n <integer>: Size of problem series" << std::endl;
 	std::cout << "-i <integer>: Solve problem in demo mode" << std::endl;
 	std::cout << "-c <integer>: Number of problem constraints" << std::endl;
+	std::cout << "--use-all-nodes: Use all trials to calculate lower lip constant" << std::endl;
+	std::cout << "" << std::endl;
 
 	exit(EXIT_SUCCESS);
 }
@@ -227,6 +229,8 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 				else
 				{
 					this->problem_no = static_cast<unsigned> (problem_no);
+
+					this->single_problem_mode = true;
 				}
 			}
 			else
@@ -257,6 +261,14 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 				std::cerr << option << " option requires one argument." << std::endl;
 				exit(EXIT_FAILURE);
 			}
+		}
+		else if (option == "--use-all-nodes")
+		{
+			this->use_neighbour_nodes_optimization = false;
+		}
+		else if (option == "--dump-nodes")
+		{
+			this->dump_trial_nodes = true;
 		}
 		else
 		{
@@ -317,4 +329,22 @@ double UserParameters::get_precision() const
 unsigned int UserParameters::get_num_constrains() const
 {
 	return this->num_constraints;
+}
+
+
+bool UserParameters::do_use_neighbour_nodes_optimization() const
+{
+	return this->use_neighbour_nodes_optimization;
+}
+
+
+bool UserParameters::do_dump_trial_nodes() const
+{
+	return this->dump_trial_nodes;
+}
+
+
+bool UserParameters::is_single_problem_mode() const
+{
+	return this->single_problem_mode;
 }

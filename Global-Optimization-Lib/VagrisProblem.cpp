@@ -42,11 +42,28 @@ void VagrisProblem::linearTransform(double point[])
 }
 
 
+void VagrisProblem::reverseLinearTransform(double point[])
+{
+	for (int i = 0; i < problem.GetDimension(); i++)
+	{
+		point[i] = point[i] - 0.5;
+	}
+}
+
+
 void VagrisProblem::mapScalarToNDimSpace(double scalar, double point[])
 {
 	mapd(scalar, PRECISION, point, problem.GetDimension(), KEY);
 
 	linearTransform(point);
+}
+
+
+void VagrisProblem::mapNDimVectorToScalar(double point[], double* scalar)
+{
+	reverseLinearTransform(point);
+
+	xyd(scalar, PRECISION, point, problem.GetDimension());
 }
 
 
@@ -90,10 +107,10 @@ double VagrisProblem::getEuclideanDistance(double lhs[], double rhs[])
 
 	for (int i = 0; i < problem.GetDimension(); i++)
 	{
-		sum += std::pow((lhs[i] - rhs[i]), 2.0);
+		sum += std::pow(lhs[i] - rhs[i], 2.0);
 	}
 
-	return sum;
+	return sqrt(sum);
 }
 
 
@@ -107,13 +124,29 @@ double VagrisProblem::getReferenceMinError(double scalar)
 
 	problem.GetOptimumPoint(min_point);
 
-	std::cout << min_point[0] << " " << min_point[1] << " z:" << problem.CalculateFunction(min_point, 0) << std::endl;
+	double min_point_scalar = 0.0;
 
 	double distance = getEuclideanDistance(trial_point, min_point);
+
+
+	/*reverseLinearTransform(min_point);
+
+	xyd(&min_point_scalar, PRECISION, min_point, problem.GetDimension());
+
+	double distance1 = sqrt(fabs(min_point_scalar - scalar));*/
+
+		//pow(fabs(min_point_scalar - scalar), 1.0 / problem.GetDimension());
+
+	//double distance = getEuclideanDistance(trial_point, min_point);
+
+
+	//std::cout << distance1 << ' ' << distance << std::endl;
 
 	delete[] min_point;
 
 	delete[] trial_point;
+
+	// return distance1;
 
 	return distance;
 }
@@ -121,7 +154,17 @@ double VagrisProblem::getReferenceMinError(double scalar)
 
 double VagrisProblem::getReferenceMinimum()
 {
-	return 0.0f;
+	double* min_point = new double[problem.GetDimension()];
+
+	problem.GetOptimumPoint(min_point);
+
+	double min_scalar = 0.0;
+
+	mapNDimVectorToScalar(min_point, &min_scalar);
+
+	delete[] min_point;
+
+	return min_scalar;
 }
 
 

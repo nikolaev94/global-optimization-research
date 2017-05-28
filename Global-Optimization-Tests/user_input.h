@@ -23,6 +23,9 @@ private:
 	double precision;
 	FunctionClass function_class;
 	Solver::SolvingMethod solving_method;
+	bool use_neighbour_nodes_optimization;
+	bool dump_trial_nodes;
+	bool single_problem_mode;
 
 	void show_usage();
 
@@ -33,7 +36,9 @@ public:
 
 	UserParameters() : dimensions(2), num_workers(2), method_parameter(5.0),
 		num_constraints(0), precision(0.1), series_size(10), problem_no(0),
-		function_class(FunctionClass::GKLS_SIMPLE), solving_method(Solver::SEQUENTIAL) {}
+		function_class(FunctionClass::GKLS_SIMPLE), solving_method(Solver::SEQUENTIAL),
+		use_neighbour_nodes_optimization(true), dump_trial_nodes(false),
+		single_problem_mode(false) {}
 
 	void parse_arguments_from_command_line(int argc, char* argv[]);
 	unsigned int get_num_constrains() const;
@@ -45,6 +50,9 @@ public:
 	double get_method_parameter() const;
 	Solver::SolvingMethod get_solving_method() const;
 	double get_precision() const;
+	bool do_use_neighbour_nodes_optimization() const;
+	bool do_dump_trial_nodes() const;
+	bool is_single_problem_mode() const;
 };
 
 #endif

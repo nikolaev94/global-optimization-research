@@ -21,6 +21,7 @@ public:
 	virtual unsigned getDimention() = 0;
 
 	virtual void mapScalarToVector(double scalar, std::vector<double>& out_point) = 0;
+
 };
 
 #endif

@@ -5,9 +5,10 @@
 #include <fstream>
 
 Solver::Solver(const Input& in_input, const problem_list& in_problems)
-	: scheduler(tbb::task_scheduler_init::deferred), input(in_input), problems(in_problems)
+	: input(in_input), problems(in_problems)
 {
-	init_tbb(input.num_threads);
+	// scheduler(tbb::task_scheduler_init::deferred)
+	init_tbb();
 }
 
 Solver::~Solver() {}
@@ -17,16 +18,48 @@ void Solver::Output::dump_results_to_file(const std::string& filename)
 {
 	std::ofstream ofstream(filename);
 
-	ofstream << "xmin" << ';' << "zmin" << ';' << "error" << ';'
+	/*ofstream << "xmin" << ';' << "zmin" << ';' << "error" << ';'
 		<< "Problem trials" << ';' << "Iterations" << ';'
-		<< "Total trials" << ';' << "Time" << ';' << std::endl;
+		<< "Total trials" << ';' << "Time" << ';' << std::endl;*/
+
+	ofstream << "xmin" << ';' << "zmin" << ';' << "xmin*" << ';' << "zmin*"
+		<< ';' << "error" << ';' << "Problem trials" << ';'
+		<< "Iterations" << ';' << "Total trials" << ';'
+		<< "Time" << ';';
+
+	// << std::endl;
+
+	ofstream << "Calculated xmin" << ';' << "Reference min" << ';' << std::endl;
 
 	for (const auto& result : results)
 	{
-		ofstream << result.xmin << ';' << result.zmin << ';' << result.error << ';'
+		ofstream << result.calculated_solution.node_scalar << ';'
+			<< result.calculated_solution.func_value << ';'
+			<< result.reference_solution.node_scalar << ';'
+			<< result.reference_solution.func_value << ';'
+			<< result.error << ';' << result.trials_num << ';' << result.iterations << ';'
+			<< result.total_trials << ';' << result.elapsed_time;
+
+		ofstream << ";(";
+
+		for (auto component : result.calculated_solution.node_point)
+		{
+			ofstream << component << ' ';
+		}
+
+		ofstream << ");(";
+
+		for (auto component : result.reference_solution.node_point)
+		{
+			ofstream << component << ' ';
+		}
+
+		ofstream << ");" << std::endl;
+
+		/*ofstream << result.xmin << ';' << result.zmin << ';' << result.error << ';'
 			<< result.trials_num << ';' << result.iterations << ';'
 			<< result.total_trials << ';' << result.elapsed_time
-			<< ';' << std::endl;
+			<< ';' << std::endl;*/
 	}
 
 	ofstream << std::endl << "Precise" << ';' << "Parameter" << ';'
@@ -48,7 +81,7 @@ void Solver::Output::dump_error_metrics_by_trials_to_file(const std::string& fil
 
 	ofstream << "Num trials" << ';' << "Average error" << ';' << "Max error" << std::endl;
 
-	for (const auto& error: this->metrics.errors_by_trials)
+	for (const auto& error: metrics.errors_by_trials)
 	{
 		ofstream << error.first << ';' << error.second.first <<
 			';' << error.second.second << std::endl;
@@ -64,7 +97,7 @@ void Solver::Output::dump_solved_problem_portion_by_trials_to_file(const std::st
 
 	ofstream << "Num trials" << ';' << "Solved problem" << std::endl;
 
-	for (const auto& portion: this->metrics.solved_problems_portion_by_trials)
+	for (const auto& portion: metrics.solved_problems_portion_by_trials)
 	{
 		ofstream << portion.first << ';' << portion.second << std::endl;
 	}
@@ -79,11 +112,13 @@ void Solver::Output::dump_method_trials_to_file(const std::string& filename)
 
 	for (const auto& result : results)
 	{
+		ofstream << "----------" << std::endl;
+
 		for (const auto& trial_info : result.trials_info)
 		{
-			ofstream << trial_info.trial_scalar << " x = (";
+			ofstream << trial_info.node_scalar << " x = (";
 
-			for (auto component : trial_info.trial_point)
+			for (auto component : trial_info.node_point)
 			{
 				ofstream << component << ";";
 			}
@@ -104,7 +139,7 @@ void Solver::Output::add_problem_solving_result(const MethodData &solved_problem
 
 void Solver::init_tbb(int number_threads)
 {
-	scheduler.initialize(number_threads);
+	//scheduler.initialize(number_threads);
 }
 
 
@@ -130,9 +165,6 @@ void Solver::Trial::perform_trial(problem_iterator problem)
 	this->admissible = true;
 }
 
-bool Solver::TrialSubset::USE_NEIGHBOUR_NODES = true; // false; // ///false; //
-
-
 void Solver::TrialSubset::calc_subset_min_estimate()
 {
 	double zmin = DBL_MAX;
@@ -153,7 +185,7 @@ double Solver::TrialSubset::calc_relative_difference_between_nodes(const Trial& 
 {
 	double delta = fabs(rhs_node.x - lhs_node.x);
 
-	auto dimension = MethodData::input.problems_dimension;
+	auto dimension = MethodData::get_problem_dimention();
 
 	if (dimension > 1)
 	{
@@ -236,7 +268,7 @@ double Solver::TrialSubset::get_subset_lip_const_lower_estimation(const Trial& a
 	{
 		double maxDiff = 0.0;
 
-		if (TrialSubset::USE_NEIGHBOUR_NODES)
+		if (MethodData::do_use_neighbour_nodes())
 		{
 			if (subset.size() > TrialSubset::SUBSET_SIZE_LIMIT)
 			{
@@ -480,7 +512,6 @@ double Solver::Interval::sgn(double arg) const
 
 
 
-
 Solver::MethodData::MethodData(problem_iterator in_problem) : problem(in_problem)
 {
 	starting_stamp = tbb::tick_count::now();
@@ -716,6 +747,7 @@ void Solver::MethodData::add_new_trial(const Trial& another_trial)
 
 tbb::mutex Solver::MethodData::mu;
 
+
 bool Solver::MethodData::is_finished() const
 {
 	return method_finished;
@@ -841,12 +873,50 @@ void Solver::MethodData::calc_elapsed_time()
 }
 
 
-void Solver::MethodData::get_trials_info(std::vector<TrialInfo>& info) const
+void Solver::MethodData::get_trials_info(std::vector<NodeInfo>& info) const
 {
 	for (const auto& trial : trials)
 	{
 		info.emplace_back(problem, trial);
 	}
+}
+
+
+void Solver::MethodData::get_calculated_solution(NodeInfo& calcted_solution) const
+{
+	calcted_solution.node_scalar = sln_estimator.xmin;
+
+	calcted_solution.func_value = sln_estimator.zmin;
+
+	(*problem)->mapScalarToVector(sln_estimator.xmin, calcted_solution.node_point);
+}
+
+
+void Solver::MethodData::get_reference_solution(NodeInfo& ref_solution) const
+{
+	ref_solution.node_scalar = (*problem)->getReferenceMinimum();
+
+	ref_solution.func_value = (*problem)->getObjectiveValue(ref_solution.node_scalar);
+
+	(*problem)->mapScalarToVector(ref_solution.node_scalar, ref_solution.node_point);
+}
+
+
+unsigned int Solver::MethodData::get_problem_dimention()
+{
+	return input.problems_dimension;
+}
+
+
+unsigned int Solver::MethodData::get_workers_num()
+{
+	return input.num_threads;
+}
+
+
+bool Solver::MethodData::do_use_neighbour_nodes()
+{
+	return input.use_neighbour_nodes_optimization;
 }
 
 
@@ -932,9 +1002,8 @@ bool Solver::MethodDataContainer::is_all_finished()
 Solver::MetricsContainer::MetricsContainer(Input input)
 {
 	double dist = fabs(input.right - input.left);
-	errors_by_trials.push_back(std::make_pair(0, std::make_pair(dist, dist)));
 
-	// this->max_error_by_trials.emplace_back(0, 0.5 * distance);
+	errors_by_trials.push_back(std::make_pair(0, std::make_pair(dist, dist)));
 }
 
 
@@ -1035,25 +1104,35 @@ void Solver::SimultaneousMethodDataContainer::parallel_perform_iteration()
 
 	auto segments_end = all_segments.begin();
 
-	if (all_segments.size() < MethodData::input.num_threads)
+	if (all_segments.size() < MethodData::get_workers_num())
 	{
 		segments_end = all_segments.end();
 	}
 	else
 	{
-		std::advance(segments_end, MethodData::input.num_threads);
+		std::advance(segments_end, MethodData::get_workers_num());
 	}
 
 	std::vector<Interval> segments_to_consider(all_segments.begin(), segments_end);
 
-	tbb::concurrent_vector<std::pair<Interval, Trial>> new_trials;
+	// tbb::concurrent_vector<> new_trials;
 
-	std::for_each(all_segments.begin(), segments_end,
+
+	std::vector<std::pair<Interval, Trial>> new_trials;
+
+	std::for_each(segments_to_consider.begin(), segments_to_consider.end(),
 		[&new_trials](const Interval &target_segment) {
 		Trial new_trial = target_segment.create_new_trial();
 
 		new_trials.push_back(std::make_pair(target_segment, new_trial));
 	});
+
+	/*std::for_each(all_segments.begin(), segments_end,
+		[&new_trials](const Interval &target_segment) {
+		Trial new_trial = target_segment.create_new_trial();
+
+		new_trials.push_back(std::make_pair(target_segment, new_trial));
+	});*/
 
 
 
@@ -1155,7 +1234,7 @@ void Solver::DynamicMethodDataContainer::take_problem_from_queue()
 
 void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
 {	
-	for (auto & solving_problem : active_solving_problems)
+	for (auto &solving_problem : active_solving_problems)
 	{
 		MethodData::perform_iteration(solving_problem);
 	}
@@ -1229,8 +1308,8 @@ void Solver::run_simultaneous_search(Output& out)
 
 void Solver::run_dynamic_search(Output& out)
 {
-	Solver::MethodData::set_method_input(this->input);
-	tbb::tick_count start_time, finish_time;
+	tbb::tick_count start_time;
+	tbb::tick_count finish_time;
 
 	start_time = tbb::tick_count::now();
 
