@@ -5,13 +5,9 @@
 #include <fstream>
 
 Solver::Solver(const Input& in_input, const problem_list& in_problems)
-	: input(in_input), problems(in_problems) //, scheduler(1)
+	: input(in_input), problems(in_problems), scheduler(in_input.num_threads)
 {
-	// scheduler(tbb::task_scheduler_init::deferred)
-	//init_tbb(in_input.num_threads);
 }
-
-Solver::~Solver() {}
 
 
 void Solver::Output::dump_results_to_file(const std::string& filename)
@@ -114,6 +110,28 @@ void Solver::Output::dump_method_trials_to_file(const std::string& filename)
 
 			ofstream << ") z = " << trial_info.func_value << std::endl;
 		}
+
+		ofstream << "Calculated solution: "
+			<< result.calculated_solution.node_scalar << " x = (";
+
+		for (auto component : result.calculated_solution.node_point)
+		{
+			ofstream << component << ';';
+		}
+
+		ofstream << ") z = " << result.calculated_solution.func_value << std::endl;
+
+
+
+		ofstream << "Reference solution: "
+			<< result.reference_solution.node_scalar << " x = (";
+
+		for (auto component : result.reference_solution.node_point)
+		{
+			ofstream << component << ';';
+		}
+
+		ofstream << ") z = " << result.reference_solution.func_value << std::endl;
 	}
 
 	ofstream.close();
@@ -128,7 +146,6 @@ void Solver::Output::add_problem_solving_result(const MethodData &solved_problem
 
 void Solver::init_tbb(int number_threads)
 {
-	//scheduler.initialize(number_threads);
 }
 
 
@@ -147,7 +164,7 @@ void Solver::Trial::perform_trial(problem_iterator problem)
 		}
 	}
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	// std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
 	this->z = (*problem)->getObjectiveValue(this->x);
 	this->nu = (*problem)->getConstraintsNumber() + 1;
@@ -503,7 +520,7 @@ double Solver::Interval::sgn(double arg) const
 
 Solver::MethodData::MethodData(problem_iterator in_problem) : problem(in_problem)
 {
-	//starting_stamp = tbb::tick_count::now();
+	starting_stamp = tbb::tick_count::now();
 
 	trials.emplace(input.left, 0.0, 0);
 	trials.emplace(input.right, 0.0, 0);
@@ -701,14 +718,12 @@ void Solver::MethodData::add_new_trial(const Trial& another_trial)
 {
 	MethodData::global_trials_count++;
 
-	if (method_finished)
+	/*if (method_finished)
 	{
 		return;
-	}
+	}*/
 
 	trials.insert(another_trial);
-
-	trials_count++;
 
 	update_solution(another_trial);
 
@@ -796,8 +811,6 @@ void Solver::MethodData::parallel_perform_iteration()
 {
 	sort_segment_set();
 
-	
-
 	auto segments_end = segment_set.begin();
 
 	if (segment_set.size() < input.num_threads)
@@ -853,7 +866,7 @@ void Solver::MethodData::parallel_perform_iteration()
 
 void Solver::MethodData::calc_elapsed_time()
 {
-	elapsed_time_in_seconds = 0;// (tbb::tick_count::now() - starting_stamp).seconds();
+	elapsed_time_in_seconds = (tbb::tick_count::now() - starting_stamp).seconds();
 }
 
 
@@ -902,14 +915,6 @@ bool Solver::MethodData::do_use_neighbour_nodes()
 {
 	return input.use_neighbour_nodes_optimization;
 }
-
-
-////Solver::Trial Solver::MethodData::get_best_interval()
-//{
-//	//auto target_segment = segment_set.begin();
-//
-//
-//}
 
 
 std::size_t Solver::MethodDataKeyHasher::operator() (const MethodDataKey& method_data) const
@@ -1189,9 +1194,9 @@ void Solver::DynamicMethodDataContainer::take_problem_from_queue()
 
 void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
 {	
-	for (auto &solving_problem : active_solving_problems)
+	for (auto solving_problem : active_solving_problems)
 	{
-		MethodData::perform_iteration(solving_problem);
+		MethodData::perform_iteration(solving_problem.get());
 	}
 
 	/*tbb::parallel_do(active_solving_problems.begin(), active_solving_problems.end(),
@@ -1227,10 +1232,10 @@ void Solver::DynamicMethodDataContainer::complete_iteration()
 
 void Solver::run_simultaneous_search(Output& out)
 {
-	//tbb::tick_count start_time;
-	//tbb::tick_count	finish_time;
+	tbb::tick_count start_time;
+	tbb::tick_count	finish_time;
 
-	//start_time = tbb::tick_count::now();
+	start_time = tbb::tick_count::now();
 
 	SimultaneousMethodDataContainer problems_method_data(problems);
 
@@ -1242,18 +1247,18 @@ void Solver::run_simultaneous_search(Output& out)
 
 	} while (!problems_method_data.is_all_finished());
 
-	//finish_time = tbb::tick_count::now();
-	out.elapsed_time = 0; //(finish_time - start_time).seconds();
+	finish_time = tbb::tick_count::now();
+	out.elapsed_time = (finish_time - start_time).seconds();
 	problems_method_data.dump_solving_results(out.results);
 }
 
 
 void Solver::run_dynamic_search(Output& out)
 {
-	//tbb::tick_count start_time;
-	//tbb::tick_count finish_time;
+	tbb::tick_count start_time;
+	tbb::tick_count finish_time;
 
-	//start_time = tbb::tick_count::now();
+	start_time = tbb::tick_count::now();
 
 	DynamicMethodDataContainer problems_method_data(problems);
 
@@ -1267,8 +1272,8 @@ void Solver::run_dynamic_search(Output& out)
 
 	} while (!problems_method_data.is_all_finished());
 
-	//finish_time = tbb::tick_count::now();
-	out.elapsed_time = 0; //(finish_time - start_time).seconds();
+	finish_time = tbb::tick_count::now();
+	out.elapsed_time = (finish_time - start_time).seconds();
 
 	problems_method_data.dump_solving_results(out.results);
 }
@@ -1276,10 +1281,10 @@ void Solver::run_dynamic_search(Output& out)
 
 void Solver::run_sequential_search(Output& out)
 {
-	//tbb::tick_count start_time;
-	//tbb::tick_count finish_time;
+	tbb::tick_count start_time;
+	tbb::tick_count finish_time;
 
-	//start_time = tbb::tick_count::now();
+	start_time = tbb::tick_count::now();
 
 	for (auto problem = this->problems.begin();
 		problem != this->problems.end(); ++problem)
@@ -1293,8 +1298,8 @@ void Solver::run_sequential_search(Output& out)
 		out.add_problem_solving_result(method_data);
 	}
 
-	//finish_time = tbb::tick_count::now();
-	out.elapsed_time = 0; //(finish_time - start_time).seconds();
+	finish_time = tbb::tick_count::now();
+	out.elapsed_time = (finish_time - start_time).seconds();
 }
 
 void Solver::run_solver(Output& out)

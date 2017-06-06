@@ -73,7 +73,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)\Global-Optimization-Lib\;$(TBBIncludeDir);$(SolutionDir)\dislin;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\dislin\win32;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\dislin\win32;$(ICPP_COMPILER16)\compiler\lib\ia32_win\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -87,7 +87,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)\Global-Optimization-Lib;$(TBBIncludeDir);$(SolutionDir)\dislin;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\dislin\Win32;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\dislin\Win32;$(ICPP_COMPILER16)\compiler\lib\ia32_win\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>

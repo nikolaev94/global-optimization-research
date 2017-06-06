@@ -11,6 +11,7 @@
 
 #include <discpp.h>
 
+#include "contour_plot_drawer.h"
 #include "problem_loader.h"
 #include "user_input.h"
 
@@ -47,6 +48,13 @@ int main(int argc, char* argv[])
 	output.dump_solved_problem_portion_by_trials_to_file(prefix + "portions.csv");
 
 	output.dump_method_trials_to_file(prefix + "trials.txt");
+
+	if (user_parameters.is_single_problem_mode())
+	{
+		ContourPlotDataDumper contour_dumper(*problems.begin());
+
+		contour_dumper.dump(prefix + "contour_data.txt");
+	}
 
 	return 0;
 }

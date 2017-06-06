@@ -67,6 +67,8 @@ public:
 	virtual unsigned int getDimention() override;
 
 	virtual void mapScalarToVector(double scalar, std::vector<double>& out_point) override;
+
+	virtual void initContourData(ContourData&) override;
 };
 
 #endif

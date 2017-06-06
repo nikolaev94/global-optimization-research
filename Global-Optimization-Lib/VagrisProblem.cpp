@@ -128,25 +128,9 @@ double VagrisProblem::getReferenceMinError(double scalar)
 
 	double distance = getEuclideanDistance(trial_point, min_point);
 
-
-	/*reverseLinearTransform(min_point);
-
-	xyd(&min_point_scalar, PRECISION, min_point, problem.GetDimension());
-
-	double distance1 = sqrt(fabs(min_point_scalar - scalar));*/
-
-		//pow(fabs(min_point_scalar - scalar), 1.0 / problem.GetDimension());
-
-	//double distance = getEuclideanDistance(trial_point, min_point);
-
-
-	//std::cout << distance1 << ' ' << distance << std::endl;
-
 	delete[] min_point;
 
 	delete[] trial_point;
-
-	// return distance1;
 
 	return distance;
 }
@@ -187,3 +171,46 @@ void VagrisProblem::mapScalarToVector(double scalar, std::vector<double>& out_po
 
 	delete[] point;
 }
+
+
+void VagrisProblem::initContourData(ContourData& contour_data)
+{
+	double* leftBound = new double[problem.GetDimension()];
+	double* rightBound = new double[problem.GetDimension()];
+
+	problem.GetBounds(leftBound, rightBound);
+
+	double step_x = abs(rightBound[0] - leftBound[0]) / contour_data.grid_size;
+
+	double step_y = abs(rightBound[1] - leftBound[1]) / contour_data.grid_size;
+
+	for (unsigned int i = 0; i < contour_data.grid_size; i++)
+	{
+		double yi = leftBound[1] + i * step_y;
+
+		contour_data.put_y(yi);
+	}
+
+	for (unsigned int j = 0; j < contour_data.grid_size; j++)
+	{
+		double xj = leftBound[0] + j * step_y;
+
+		contour_data.put_x(xj);
+	}
+
+
+	for (const auto x_comp : contour_data.x_values)
+	{
+		std::size_t row = 0;
+		for (const auto y_comp : contour_data.y_values)
+		{
+			double node_point[] = { x_comp, y_comp };
+
+			contour_data.put_z(row++, problem.CalculateFunction(node_point, 0));
+		}
+	}
+
+	delete[] leftBound;
+	delete[] rightBound;
+}
+
