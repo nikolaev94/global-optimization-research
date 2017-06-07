@@ -1,5 +1,5 @@
 
-#include "contour_plot_drawer.h"
+#include "contour_plot_dumper.h"
 
 
 void ContourPlotDataDumper::dump(const std::string& filename)

@@ -1,6 +1,6 @@
 
-#ifndef COUNTER_PLOT_DRAWER_H
-#define COUNTER_PLOT_DRAWER_H
+#ifndef COUNTER_PLOT_DUMPER_H
+#define COUNTER_PLOT_DUMPER_H
 
 #include <fstream>
 #include <vector>

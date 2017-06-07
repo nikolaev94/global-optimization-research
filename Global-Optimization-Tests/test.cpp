@@ -9,9 +9,7 @@
 
 #include <solver.h>
 
-#include <discpp.h>
-
-#include "contour_plot_drawer.h"
+#include "contour_plot_dumper.h"
 #include "problem_loader.h"
 #include "user_input.h"
 
