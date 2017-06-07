@@ -27,7 +27,7 @@
     <ClCompile Include="user_input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="contour_plot_drawer.cpp">
+    <ClCompile Include="contour_plot_dumper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,7 +38,7 @@
     <ClInclude Include="user_input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="contour_plot_drawer.h">
+    <ClInclude Include="contour_plot_dumper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

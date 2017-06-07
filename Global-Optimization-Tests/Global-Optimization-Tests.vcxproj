@@ -181,7 +181,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="contour_plot_drawer.cpp" />
+    <ClCompile Include="contour_plot_dumper.cpp" />
     <ClCompile Include="problem_loader.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="user_input.cpp" />
@@ -192,7 +192,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="contour_plot_drawer.h" />
+    <ClInclude Include="contour_plot_dumper.h" />
     <ClInclude Include="problem_loader.h" />
     <ClInclude Include="user_input.h" />
   </ItemGroup>
