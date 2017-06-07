@@ -14,7 +14,7 @@ class ContourPlotDataDumper
 private:
 	OptProblem::OptProblemP target_problem;
 
-	const unsigned int DEFAULT_GRID_SIZE = 200;
+	const unsigned int DEFAULT_GRID_SIZE = 60;
 
 public:
 	ContourPlotDataDumper(OptProblem::OptProblemP in_target_problem) :

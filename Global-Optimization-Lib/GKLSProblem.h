@@ -20,7 +20,7 @@ public:
 	typedef std::shared_ptr<gkls::GKLSFunction> GKLSFunctionP;
 private:
 	static const int KEY = 1;
-	static const int PRECISION = 10;
+	static const int PRECISION = 14;
 
 	const double CONSTRAINT_SHIFT_PARAMETER = 0.01f;
 

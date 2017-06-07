@@ -242,15 +242,16 @@ void GKLSProblem::initContourData(ContourData& contour_data)
 	}
 
 
+	std::size_t row = 0;
 	for (const auto x_comp : contour_data.x_values)
 	{
-		std::size_t row = 0;
 		for (const auto y_comp : contour_data.y_values)
 		{
 			double node_point[] = { x_comp, y_comp };
 
-			contour_data.put_z(row++, problem.CalculateFunction(node_point, 0));
+			contour_data.put_z(row, problem.CalculateFunction(node_point, 0));
 		}
+		++row;
 	}
 
 	delete[] leftBound;

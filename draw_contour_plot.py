@@ -27,14 +27,9 @@ def get_trial_points(filename):
     for txt_line in txt_lines[1:]:
         if txt_line == '----------':
             break
-        match = re.search(r'.+\((-?\d+\.\d+);(-?\d+\.\d+);', txt_line)
-        if match:
-            x_values.append(match.group(1))
-            y_values.append(match.group(2))
-            continue
 
         match_calc_sln = re.search(r'^Calculated.+\((-?\d+\.\d+);(-?\d+\.\d+);', txt_line)
-        match_ref_sln = re.search(r'Reference.+\((-?\d+\.\d+);(-?\d+\.\d+);', txt_line)
+        match_ref_sln = re.search(r'^Reference.+\((-?\d+\.\d+);(-?\d+\.\d+);', txt_line)
 
         if match_calc_sln:
             x_calc = match_calc_sln.group(1)
@@ -42,6 +37,18 @@ def get_trial_points(filename):
         elif match_ref_sln:
             x_ref = match_ref_sln.group(1)
             y_ref = match_ref_sln.group(2)
+
+        if match_calc_sln or match_ref_sln:
+            continue
+
+        match = re.search(r'.+\((-?\d+\.\d+);(-?\d+\.\d+);', txt_line)
+        if match:
+            x_values.append(match.group(1))
+            y_values.append(match.group(2))
+
+    print x_calc, y_calc
+    print x_ref, y_ref
+
 
     trial_points['x_calc'] = x_calc
     trial_points['y_calc'] = y_calc
@@ -73,29 +80,32 @@ if trials_data_txt:
 
 contour_plot_data = np.genfromtxt(contour_plot_data_txt)
 
+
 x = contour_plot_data[:,0]
 y = contour_plot_data[:,1]
 z = contour_plot_data[:,2]
 
-print x
-print y
-print z
 
 xi = np.linspace(min(x), max(x))
 yi = np.linspace(min(x), max(y))
 
 X, Y = np.meshgrid(xi, yi)
+
+
 Z = griddata(x, y, z, xi, yi, interp='linear')
 
 plt.figure()
 
-plt.contour(X, Y, Z, 50)
+plt.contour(X, Y, Z, 10)
 
-plt.plot(trials_data['x'], trials_data['y'], 'bo', markersize=1.8)
+#plt.scatter(x,y,marker='o',c='b',s=5)
 
-plt.plot(trials_data['x_ref'], trials_data['y_ref'], 'ro', markersize=2.8)
 
-plt.plot(trials_data['x_calc'], trials_data['y_calc'], 'go', markersize=2.8)
+plt.plot(trials_data['x'], trials_data['y'], 'bo', markersize=2.8)
+
+plt.plot(trials_data['x_ref'], trials_data['y_ref'], 'ro', markersize=5.0)
+
+plt.plot(trials_data['x_calc'], trials_data['y_calc'], 'go', markersize=5.0)
 
 
 
