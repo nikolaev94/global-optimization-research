@@ -9,7 +9,6 @@ Solver::Solver(const Input& in_input, const problem_list& in_problems)
 {
 }
 
-
 void Solver::Output::dump_results_to_file(const std::string& filename)
 {
 	std::ofstream ofstream(filename);
@@ -144,11 +143,6 @@ void Solver::Output::add_problem_solving_result(const MethodData &solved_problem
 }
 
 
-void Solver::init_tbb(int number_threads)
-{
-}
-
-
 void Solver::Trial::perform_trial(problem_iterator problem)
 {
 	for (size_t constraint_no = 0;
@@ -164,7 +158,10 @@ void Solver::Trial::perform_trial(problem_iterator problem)
 		}
 	}
 
-	// std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	if (MethodData::do_use_complicated_function_calculation())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
 
 	this->z = (*problem)->getObjectiveValue(this->x);
 	this->nu = (*problem)->getConstraintsNumber() + 1;
@@ -754,9 +751,9 @@ Solver::Input Solver::MethodData::input;
 
 unsigned Solver::MethodData::global_iterations_count = 0;
 
-unsigned Solver::MethodData::global_trials_count = 0;
+tbb::atomic<unsigned> Solver::MethodData::global_trials_count;
 
-// tbb::atomic<unsigned> Solver::MethodData::global_trials_count;
+// unsigned Solver::MethodData::global_trials_count = 0;
 
 void Solver::MethodData::set_method_input(const Input& user_input)
 {
@@ -822,23 +819,23 @@ void Solver::MethodData::parallel_perform_iteration()
 		std::advance(segments_end, input.num_threads);
 	}
 
-	std::vector<std::pair<Interval, Trial>> new_trials;
+	//std::vector<std::pair<Interval, Trial>> new_trials;
 
-	std::for_each(segment_set.begin(), segments_end,
-		[&new_trials](const Interval &target_segment) {
-		Trial new_trial = target_segment.create_new_trial();
-
-		new_trials.push_back(std::make_pair(target_segment, new_trial));
-	});
-
-	// tbb::concurrent_vector<std::pair<Interval, Trial>> new_trials;
-
-	/*tbb::parallel_do(segment_set.begin(), segments_end,
+	/*std::for_each(segment_set.begin(), segments_end,
 		[&new_trials](const Interval &target_segment) {
 		Trial new_trial = target_segment.create_new_trial();
 
 		new_trials.push_back(std::make_pair(target_segment, new_trial));
 	});*/
+
+	tbb::concurrent_vector<std::pair<Interval, Trial>> new_trials;
+
+	tbb::parallel_do(segment_set.begin(), segments_end,
+		[&new_trials](const Interval &target_segment) {
+		Trial new_trial = target_segment.create_new_trial();
+
+		new_trials.push_back(std::make_pair(target_segment, new_trial));
+	});
 
 	for (const auto &trial_to_process : new_trials)
 	{
@@ -879,13 +876,13 @@ void Solver::MethodData::get_trials_info(std::vector<NodeInfo>& info) const
 }
 
 
-void Solver::MethodData::get_calculated_solution(NodeInfo& calcted_solution) const
+void Solver::MethodData::get_calculated_solution(NodeInfo& calculated_solution) const
 {
-	calcted_solution.node_scalar = sln_estimator.xmin;
+	calculated_solution.node_scalar = sln_estimator.xmin;
 
-	calcted_solution.func_value = sln_estimator.zmin;
+	calculated_solution.func_value = sln_estimator.zmin;
 
-	(*problem)->mapScalarToVector(sln_estimator.xmin, calcted_solution.node_point);
+	(*problem)->mapScalarToVector(sln_estimator.xmin, calculated_solution.node_point);
 }
 
 
@@ -914,6 +911,12 @@ unsigned int Solver::MethodData::get_workers_num()
 bool Solver::MethodData::do_use_neighbour_nodes()
 {
 	return input.use_neighbour_nodes_optimization;
+}
+
+
+bool Solver::MethodData::do_use_complicated_function_calculation()
+{
+	return input.use_expensive_function_calculation;
 }
 
 
@@ -1194,16 +1197,16 @@ void Solver::DynamicMethodDataContainer::take_problem_from_queue()
 
 void Solver::DynamicMethodDataContainer::parallel_perform_iteration()
 {	
-	for (auto solving_problem : active_solving_problems)
+	/*for (auto solving_problem : active_solving_problems)
 	{
 		MethodData::perform_iteration(solving_problem.get());
-	}
+	}*/
 
-	/*tbb::parallel_do(active_solving_problems.begin(), active_solving_problems.end(),
+	tbb::parallel_do(active_solving_problems.begin(), active_solving_problems.end(),
 		[](MethodData& solving_problem) -> void
 	{
 		MethodData::perform_iteration(solving_problem);
-	});*/
+	});
 }
 
 

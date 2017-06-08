@@ -17,9 +17,12 @@ void UserParameters::show_usage()
 	std::cout << "-w --workers <integer>: Number of workers" << std::endl;
 	std::cout << "-n <integer>: Size of problem series" << std::endl;
 	std::cout << "-i <integer>: Solve problem in demo mode" << std::endl;
-	std::cout << "-c <integer>: Number of problem constraints" << std::endl;
-	std::cout << "--use-all-nodes: Use all trials to calculate lower lip constant" << std::endl;
-	std::cout << "" << std::endl;
+	// std::cout << "-c <integer>: Number of problem constraints" << std::endl;
+	std::cout << "--use-all-nodes: Use all trials to calculate lower lip constant"
+		<< std::endl;
+	std::cout <<
+		"--use-sleep: Use sleep mode to make function calculation more time-expensive"
+		<< std::endl;
 
 	exit(EXIT_SUCCESS);
 }
@@ -266,9 +269,9 @@ void UserParameters::parse_arguments_from_command_line(int argc, char* argv[])
 		{
 			this->use_neighbour_nodes_optimization = false;
 		}
-		else if (option == "--dump-nodes")
+		else if (option == "--use-sleep")
 		{
-			this->dump_trial_nodes = true;
+			this->use_sleep_mode = true;
 		}
 		else
 		{
@@ -338,13 +341,13 @@ bool UserParameters::do_use_neighbour_nodes_optimization() const
 }
 
 
-bool UserParameters::do_dump_trial_nodes() const
-{
-	return this->dump_trial_nodes;
-}
-
-
 bool UserParameters::is_single_problem_mode() const
 {
 	return this->single_problem_mode;
+}
+
+
+bool UserParameters::do_use_sleep_mode() const
+{
+	return this->use_sleep_mode;
 }

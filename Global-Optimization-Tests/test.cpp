@@ -31,7 +31,8 @@ int main(int argc, char* argv[])
 		user_parameters.get_precision(), user_parameters.get_method_parameter(),
 		user_parameters.get_workers_number(), user_parameters.get_dimension(),
 		user_parameters.get_solving_method(),
-		user_parameters.do_use_neighbour_nodes_optimization() };
+		user_parameters.do_use_neighbour_nodes_optimization(),
+		user_parameters.do_use_sleep_mode() };
 
 	Solver::Output output(input);
 
@@ -49,7 +50,7 @@ int main(int argc, char* argv[])
 
 	if (user_parameters.is_single_problem_mode())
 	{
-		ContourPlotDataDumper contour_dumper(*problems.begin());
+		ContourPlotDataDumper contour_dumper(*(problems.begin()));
 
 		contour_dumper.dump(prefix + "contour_data.txt");
 	}

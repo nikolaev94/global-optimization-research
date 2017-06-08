@@ -1,7 +1,7 @@
 
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.mlab import griddata
+import numpy as np
 import re
 import sys
 
@@ -49,6 +49,11 @@ def get_trial_points(filename):
     print x_calc, y_calc
     print x_ref, y_ref
 
+    if x_calc in x_values:
+        x_values.remove(x_calc)
+
+    if y_calc in y_values:
+        y_values.remove(y_calc)
 
     trial_points['x_calc'] = x_calc
     trial_points['y_calc'] = y_calc
@@ -67,6 +72,7 @@ if len(sys.argv) < 2:
 
 contour_plot_data_txt = sys.argv[1]
 
+
 trials_data_txt = ''
 
 if len(sys.argv) == 3:
@@ -80,11 +86,9 @@ if trials_data_txt:
 
 contour_plot_data = np.genfromtxt(contour_plot_data_txt)
 
-
 x = contour_plot_data[:,0]
 y = contour_plot_data[:,1]
 z = contour_plot_data[:,2]
-
 
 xi = np.linspace(min(x), max(x))
 yi = np.linspace(min(x), max(y))
@@ -96,17 +100,17 @@ Z = griddata(x, y, z, xi, yi, interp='linear')
 
 plt.figure()
 
-plt.contour(X, Y, Z, 10)
+plt.contour(X, Y, Z, 15)
 
-#plt.scatter(x,y,marker='o',c='b',s=5)
+if trials_data:
+    plt.plot(trials_data['x'], trials_data['y'], 'bo', markersize=2.0)
+    plt.plot(trials_data['x_ref'], trials_data['y_ref'], 'r*', markersize=5.5, label='Reference solution')
+    plt.plot(trials_data['x_calc'], trials_data['y_calc'], 'kx', markersize=5.5, label='Calculated solution')
 
+plt.axis([min(x), max(x), min(y), max(y)])
 
-plt.plot(trials_data['x'], trials_data['y'], 'bo', markersize=2.8)
+fig = plt.gcf()
+#fig.canvas.set_window_title()
 
-plt.plot(trials_data['x_ref'], trials_data['y_ref'], 'ro', markersize=5.0)
-
-plt.plot(trials_data['x_calc'], trials_data['y_calc'], 'go', markersize=5.0)
-
-
-
+plt.legend()
 plt.show()

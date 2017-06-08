@@ -10,9 +10,9 @@ void ContourPlotDataDumper::dump(const std::string& filename)
 
 	target_problem->initContourData(data);
 
-	for (auto i = 0; i < data.grid_size; i++)
+	for (unsigned int i = 0; i < data.grid_size; i++)
 	{
-		for (auto j = 0; j < data.grid_size; j++)
+		for (unsigned int j = 0; j < data.grid_size; j++)
 		{
 			ofstream << data.x_values[i] << ' ' << data.y_values[j] << ' '
 				<< data.z_values[i][j] << std::endl;
@@ -21,4 +21,3 @@ void ContourPlotDataDumper::dump(const std::string& filename)
 
 	ofstream.close();
 }
-

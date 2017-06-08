@@ -60,7 +60,8 @@ public:
 
 	struct Input
 	{
-		double left, right;
+		double left;
+		double right;
 		double method_eps, method_param;
 		unsigned int num_threads;
 		unsigned int problems_dimension;
@@ -70,31 +71,35 @@ public:
 		* Use only neighbour trials to calculate lower lip const
 		*/
 		bool use_neighbour_nodes_optimization;
-		
+
+		bool use_expensive_function_calculation;
 
 		Input() :
 			left(0.0), right(1.0), method_eps(1.e-3), method_param(3.0),
 			num_threads(1), problems_dimension(2),
 			solving_method(SolvingMethod::SEQUENTIAL),
-			use_neighbour_nodes_optimization(true) {}
+			use_neighbour_nodes_optimization(true),
+			use_expensive_function_calculation(false) {}
 
 		Input(double in_left, double in_right, double in_method_eps,
 			double in_method_param, unsigned int in_num_threads,
 			unsigned int in_problems_dimension = 2,
 			SolvingMethod in_solving_method = SolvingMethod::SEQUENTIAL,
 			bool neighbour_nodes_optimization = true,
-			bool dump_trial_nodes = false) :
+			bool expensive_function_calculation = false) :
 			left(in_left), right(in_right), method_eps(in_method_eps),
 			method_param(in_method_param), num_threads(in_num_threads),
 			problems_dimension(in_problems_dimension),
 			solving_method(in_solving_method),
-			use_neighbour_nodes_optimization(neighbour_nodes_optimization) {}
+			use_neighbour_nodes_optimization(neighbour_nodes_optimization),
+			use_expensive_function_calculation(expensive_function_calculation) {}
 
 		Input(const Input &input) : left(input.left), right(input.right),
 			method_eps(input.method_eps), method_param(input.method_param),
 			num_threads(input.num_threads), problems_dimension(input.problems_dimension),
 			solving_method(input.solving_method),
-			use_neighbour_nodes_optimization(input.use_neighbour_nodes_optimization) {}
+			use_neighbour_nodes_optimization(input.use_neighbour_nodes_optimization),
+			use_expensive_function_calculation(input.use_expensive_function_calculation) {}
 	};
 
 	struct ProblemSolvingResult
@@ -138,8 +143,6 @@ public:
 			this->xmin = method_data.sln_estimator.xmin;
 			this->zmin = method_data.sln_estimator.zmin;
 			this->error = method_data.sln_estimator.error;
-
-
 
 			this->trials_num = method_data.trials_count;
 			this->iterations = method_data.total_iterations_count;
@@ -231,7 +234,7 @@ private:
 		double calc_relative_difference_between_nodes(const Trial&, const Trial&);
 	};
 
-	typedef std::map< unsigned, TrialSubset > trial_subsets;
+	typedef std::map<unsigned, TrialSubset> trial_subsets;
 	
 	struct Interval
 	{
@@ -322,14 +325,11 @@ private:
 
 	struct MethodData
 	{
-		
 		static unsigned int global_iterations_count;
 
-		static unsigned int global_trials_count;
+		// static unsigned int global_trials_count;
 
-		//static tbb::atomic<unsigned int> global_trials_count;
-
-		
+		static tbb::atomic<unsigned int> global_trials_count;
 
 		// static tbb::mutex mu;
 
@@ -343,12 +343,7 @@ private:
 
 		static bool do_use_neighbour_nodes();
 
-
-		//Trial get_best_interval();
-
-		//void perform_iteration();
-
-		//bool operator==(const MethodData&) const;
+		static bool do_use_complicated_function_calculation();
 
 		unsigned trials_count = 0;
 		unsigned total_trials_count = 0;
